@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MatchingApp.Api.Data;
 using MatchingApp.Api.Models;
+using MatchingApp.Api.Services;
 
 namespace MatchingApp.Api.Controllers
 {
@@ -10,10 +11,12 @@ namespace MatchingApp.Api.Controllers
     public class ClientsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly NatalChartService _natalService;
 
-        public ClientsController(AppDbContext context)
+        public ClientsController(AppDbContext context, NatalChartService natalService)
         {
             _context = context;
+            _natalService = natalService;
         }
 
         [HttpGet("{id}")]
@@ -30,7 +33,8 @@ namespace MatchingApp.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Client>> CreateClient(Client client)
         {
-            // TODO: compute natal chart here
+            var chart = _natalService.Calculate(client);
+            client.NatalChart = chart;
             _context.Clients.Add(client);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetClient), new { id = client.Id }, client);
