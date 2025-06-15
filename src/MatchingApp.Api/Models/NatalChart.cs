@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace MatchingApp.Api.Models
 {
     public class NatalChart
@@ -7,6 +9,7 @@ namespace MatchingApp.Api.Models
         public string? SunSign { get; set; }
         public string? MoonSign { get; set; }
         public string? Ascendant { get; set; }
+        [JsonIgnore]
         public Client? Client { get; set; }
     }
 }
