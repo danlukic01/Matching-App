@@ -23,7 +23,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseDefaultFiles();
+var defaultFileOptions = new DefaultFilesOptions();
+defaultFileOptions.DefaultFileNames.Clear();
+defaultFileOptions.DefaultFileNames.Add("app.html");
+app.UseDefaultFiles(defaultFileOptions);
+
 app.UseStaticFiles();
 app.UseAuthorization();
 app.MapControllers();
