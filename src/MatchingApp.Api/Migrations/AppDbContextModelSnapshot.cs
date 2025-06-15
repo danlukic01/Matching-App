@@ -34,7 +34,9 @@ namespace MatchingApp.Api.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
+
                         .HasColumnType("nvarchar(max)");
+
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
@@ -49,6 +51,9 @@ namespace MatchingApp.Api.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.ToTable("Clients");
                 });

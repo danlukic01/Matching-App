@@ -37,6 +37,7 @@ namespace MatchingApp.Api.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
+
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PasswordHash")
