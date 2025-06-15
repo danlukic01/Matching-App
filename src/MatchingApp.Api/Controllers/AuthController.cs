@@ -36,6 +36,8 @@ namespace MatchingApp.Api.Controllers
             public DateTime BirthDate { get; set; }
             public TimeSpan BirthTime { get; set; }
             public string? BirthLocation { get; set; }
+            public string? Gender { get; set; }
+            public string? PreferredGender { get; set; }
             public string Email { get; set; } = string.Empty;
             public string Password { get; set; } = string.Empty;
         }
@@ -54,6 +56,8 @@ namespace MatchingApp.Api.Controllers
                 BirthDate = request.BirthDate,
                 BirthTime = request.BirthTime,
                 BirthLocation = request.BirthLocation,
+                Gender = request.Gender,
+                PreferredGender = request.PreferredGender,
                 Email = request.Email,
                 PasswordHash = HashPassword(request.Password)
             };
