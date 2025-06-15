@@ -13,13 +13,13 @@ namespace MatchingApp.Api.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Unique index for Match pairs
             modelBuilder.Entity<Match>()
                 .HasIndex(m => new { m.ClientAId, m.ClientBId })
                 .IsUnique();
 
-            modelBuilder.Entity<Client>()
-                .HasIndex(c => c.Email)
-                .IsUnique();
+            // No need to define the index for Client.Email again,
+            // because the [Index] attribute on Client takes care of it
 
             base.OnModelCreating(modelBuilder);
         }

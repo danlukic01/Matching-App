@@ -9,9 +9,11 @@ namespace MatchingApp.Api.Models
         public int Id { get; set; }
         public string? Name { get; set; }
 
-        [MaxLength(450)]
+        [Required]
+        [MaxLength(255)]
+        public string Email { get; set; } = null!;
 
-        public string? Email { get; set; }
+        [MaxLength(255)]
         public string? PasswordHash { get; set; }
         public DateTime BirthDate { get; set; }
         public TimeSpan BirthTime { get; set; }
