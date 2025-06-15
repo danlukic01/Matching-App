@@ -55,12 +55,26 @@
         <h1>Matching App</h1>
         <section id="landing-section">
             <p>Welcome to Matching App!</p>
+            <form id="login-form">
+                <label>Email:
+                    <input type="email" id="login-email" required>
+                </label>
+                <label>Password:
+                    <input type="password" id="login-password" required>
+                </label>
+                <button type="submit" id="login-btn">Log In</button>
+            </form>
             <button id="create-profile-btn">Create Profile</button>
-            <button id="login-btn">Log In</button>
         </section>
 
         <section id="profile-form-section" style="display:none;">
             <form id="profile-form">
+                <label>Email:
+                    <input type="email" id="email" required>
+                </label>
+                <label>Password:
+                    <input type="password" id="password" required>
+                </label>
                 <label>Name:
                     <input type="text" id="name" required>
                 </label>
@@ -101,7 +115,9 @@
     <script>
         const apiClients = '/api/clients';
         const apiMatches = '/api/matches';
+        const apiAuth = '/api/auth';
         let currentClient = null;
+        let authToken = localStorage.getItem('authToken');
 
         function showLanding() {
             document.getElementById('landing-section').style.display = 'block';
@@ -112,14 +128,16 @@
 
         async function loadProfile() {
             const id = localStorage.getItem('clientId');
-            if (id) {
-                const res = await fetch(`${apiClients}/${id}`);
+            authToken = localStorage.getItem('authToken');
+            if (id && authToken) {
+                const res = await fetch(`${apiClients}/${id}`, { headers: { 'X-Auth-Token': authToken } });
                 if (res.ok) {
                     currentClient = await res.json();
                     showProfileSummary();
                     return;
                 }
                 localStorage.removeItem('clientId');
+                localStorage.removeItem('authToken');
             }
             showLanding();
         }
@@ -149,16 +167,21 @@
                 name: document.getElementById('name').value,
                 birthDate: document.getElementById('birthDate').value,
                 birthTime: document.getElementById('birthTime').value + ':00',
-                birthLocation: document.getElementById('birthLocation').value
+                birthLocation: document.getElementById('birthLocation').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
             };
-            const res = await fetch(apiClients, {
+            const res = await fetch(`${apiAuth}/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(client)
             });
             if (res.ok) {
-                currentClient = await res.json();
-                localStorage.setItem('clientId', currentClient.id);
+                const data = await res.json();
+                authToken = data.token;
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('clientId', data.clientId);
+                currentClient = await fetch(`${apiClients}/${data.clientId}`, { headers: { 'X-Auth-Token': authToken } }).then(r => r.json());
                 showProfileSummary();
             }
         });
@@ -173,16 +196,26 @@
 
         document.getElementById('create-profile-btn').addEventListener('click', showProfileForm);
 
-        document.getElementById('login-btn').addEventListener('click', async () => {
-            const id = prompt('Enter your Client ID');
-            if (!id) return;
-            const res = await fetch(`${apiClients}/${id}`);
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const creds = {
+                email: document.getElementById('login-email').value,
+                password: document.getElementById('login-password').value
+            };
+            const res = await fetch(`${apiAuth}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(creds)
+            });
             if (res.ok) {
-                currentClient = await res.json();
-                localStorage.setItem('clientId', currentClient.id);
+                const data = await res.json();
+                authToken = data.token;
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('clientId', data.clientId);
+                currentClient = await fetch(`${apiClients}/${data.clientId}`, { headers: { 'X-Auth-Token': authToken } }).then(r => r.json());
                 showProfileSummary();
             } else {
-                alert('Client not found');
+                alert('Invalid credentials');
             }
         });
 
@@ -200,7 +233,9 @@
 
         async function loadMatches() {
             const top = document.getElementById('top-select').value;
-            const res = await fetch(`${apiMatches}/recommendations/${currentClient.id}?top=${top}`);
+            const res = await fetch(`${apiMatches}/recommendations/${currentClient.id}?top=${top}`, {
+                headers: { 'X-Auth-Token': authToken }
+            });
             if (!res.ok) return;
             const data = await res.json();
             const list = document.getElementById('matches-list');

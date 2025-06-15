@@ -17,6 +17,10 @@ namespace MatchingApp.Api.Data
                 .HasIndex(m => new { m.ClientAId, m.ClientBId })
                 .IsUnique();
 
+            modelBuilder.Entity<Client>()
+                .HasIndex(c => c.Email)
+                .IsUnique();
+
             base.OnModelCreating(modelBuilder);
         }
     }

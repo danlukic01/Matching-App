@@ -3,6 +3,7 @@ using MatchingApp.Api.Models;
 using MatchingApp.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace MatchingApp.Api.Controllers
 {
@@ -12,11 +13,19 @@ namespace MatchingApp.Api.Controllers
     {
         private readonly AppDbContext _context;
         private readonly MatchService _matchService;
+        private readonly AuthService _authService;
 
-        public MatchesController(AppDbContext context, MatchService matchService)
+        public MatchesController(AppDbContext context, MatchService matchService, AuthService authService)
         {
             _context = context;
             _matchService = matchService;
+            _authService = authService;
+        }
+
+        private int? GetAuthenticatedClientId()
+        {
+            var token = Request.Headers["X-Auth-Token"].FirstOrDefault();
+            return _authService.GetClientId(token);
         }
 
         [HttpGet]
@@ -45,6 +54,12 @@ namespace MatchingApp.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Match>> CreateMatch(CreateMatchRequest request)
         {
+            var authId = GetAuthenticatedClientId();
+            if (authId == null || (authId != request.ClientAId && authId != request.ClientBId))
+            {
+                return Unauthorized();
+            }
+
             if (request.ClientAId == request.ClientBId)
             {
                 return BadRequest();
@@ -86,6 +101,12 @@ namespace MatchingApp.Api.Controllers
         [HttpGet("recommendations/{clientId}")]
         public async Task<ActionResult<IEnumerable<MatchRecommendation>>> GetRecommendations(int clientId, [FromQuery] int top = 5)
         {
+            var authId = GetAuthenticatedClientId();
+            if (authId == null || authId != clientId)
+            {
+                return Unauthorized();
+            }
+
             if (top < 1) top = 5;
 
             var client = await _context.Clients.Include(c => c.NatalChart).FirstOrDefaultAsync(c => c.Id == clientId);
