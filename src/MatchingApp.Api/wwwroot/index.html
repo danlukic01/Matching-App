@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Matching App</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form { margin-bottom: 20px; }
+        label { display: block; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Matching App</h1>
+    <section>
+        <h2>Create Client</h2>
+        <form id="create-form">
+            <label>Name: <input type="text" id="name" required></label>
+            <label>Birth Date: <input type="date" id="birthDate" required></label>
+            <label>Birth Time: <input type="time" id="birthTime" required></label>
+            <label>Birth Location: <input type="text" id="birthLocation" required></label>
+            <button type="submit">Create</button>
+        </form>
+        <pre id="create-result"></pre>
+    </section>
+    <section>
+        <h2>Get Client</h2>
+        <label>Client ID: <input type="number" id="get-id"></label>
+        <button id="get-btn">Get Client</button>
+        <pre id="get-result"></pre>
+    </section>
+    <script>
+        const apiBase = '/api/clients';
+
+        document.getElementById('create-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            const client = {
+                name: document.getElementById('name').value,
+                birthDate: document.getElementById('birthDate').value,
+                birthTime: document.getElementById('birthTime').value + ':00',
+                birthLocation: document.getElementById('birthLocation').value
+            };
+            const res = await fetch(apiBase, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(client)
+            });
+            const data = await res.json();
+            document.getElementById('create-result').textContent = JSON.stringify(data, null, 2);
+        });
+
+        document.getElementById('get-btn').addEventListener('click', async () => {
+            const id = document.getElementById('get-id').value;
+            if (!id) return;
+            const res = await fetch(`${apiBase}/${id}`);
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('get-result').textContent = JSON.stringify(data, null, 2);
+            } else {
+                document.getElementById('get-result').textContent = 'Client not found';
+            }
+        });
+    </script>
+</body>
+</html>
