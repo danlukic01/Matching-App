@@ -16,7 +16,13 @@ To run the API locally:
 dotnet run
 ```
 
-The API exposes endpoints under `/api/clients`.
+The API exposes endpoints under `/api/clients`:
+
+- `GET /api/clients` – list clients with optional `search`, `page`, and `pageSize` query parameters
+- `GET /api/clients/{id}` – retrieve a single client
+- `POST /api/clients` – create a client
+- `PUT /api/clients/{id}` – update a client
+- `DELETE /api/clients/{id}` – remove a client
 
 ## Web UI
 
