@@ -29,6 +29,11 @@ Additional match related endpoints under `/api/matches`:
 - `POST /api/matches` – create a match record between two clients
 - `GET /api/matches/recommendations/{clientId}?top=5` – find the top matches for a client. The score is returned on a 0‑10 scale along with text reasons explaining the compatibility.
 
+## Sample Data
+
+For convenience a SQL script with 50 example clients is provided in `scripts/sample-data.sql`.
+Execute this file against your SQL Server database to populate the `Clients` and `NatalCharts` tables with test data.
+
 
 
 ## Web UI
