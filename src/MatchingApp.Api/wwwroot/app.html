@@ -53,7 +53,13 @@
 <body>
     <main>
         <h1>Matching App</h1>
-        <section id="profile-form-section">
+        <section id="landing-section">
+            <p>Welcome to Matching App!</p>
+            <button id="create-profile-btn">Create Profile</button>
+            <button id="login-btn">Log In</button>
+        </section>
+
+        <section id="profile-form-section" style="display:none;">
             <form id="profile-form">
                 <label>Name:
                     <input type="text" id="name" required>
@@ -97,6 +103,13 @@
         const apiMatches = '/api/matches';
         let currentClient = null;
 
+        function showLanding() {
+            document.getElementById('landing-section').style.display = 'block';
+            document.getElementById('profile-form-section').style.display = 'none';
+            document.getElementById('profile-summary').style.display = 'none';
+            document.getElementById('matches-section').style.display = 'none';
+        }
+
         async function loadProfile() {
             const id = localStorage.getItem('clientId');
             if (id) {
@@ -108,10 +121,11 @@
                 }
                 localStorage.removeItem('clientId');
             }
-            showProfileForm();
+            showLanding();
         }
 
         function showProfileForm() {
+            document.getElementById('landing-section').style.display = 'none';
             document.getElementById('profile-form-section').style.display = 'block';
             document.getElementById('profile-summary').style.display = 'none';
             document.getElementById('matches-section').style.display = 'none';
@@ -123,6 +137,7 @@
             document.getElementById('summary-birthDate').textContent = c.birthDate.split('T')[0];
             document.getElementById('summary-birthTime').textContent = c.birthTime;
             document.getElementById('summary-birthLocation').textContent = c.birthLocation || '';
+            document.getElementById('landing-section').style.display = 'none';
             document.getElementById('profile-form-section').style.display = 'none';
             document.getElementById('profile-summary').style.display = 'block';
             document.getElementById('matches-section').style.display = 'none';
@@ -154,6 +169,21 @@
             document.getElementById('birthDate').value = currentClient.birthDate.split('T')[0];
             document.getElementById('birthTime').value = currentClient.birthTime.substring(0,5);
             document.getElementById('birthLocation').value = currentClient.birthLocation || '';
+        });
+
+        document.getElementById('create-profile-btn').addEventListener('click', showProfileForm);
+
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const id = prompt('Enter your Client ID');
+            if (!id) return;
+            const res = await fetch(`${apiClients}/${id}`);
+            if (res.ok) {
+                currentClient = await res.json();
+                localStorage.setItem('clientId', currentClient.id);
+                showProfileSummary();
+            } else {
+                alert('Client not found');
+            }
         });
 
         document.getElementById('find-btn').addEventListener('click', () => {
