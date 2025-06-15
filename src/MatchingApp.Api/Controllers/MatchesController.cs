@@ -72,5 +72,35 @@ namespace MatchingApp.Api.Controllers
 
             return CreatedAtAction(nameof(GetMatch), new { id = match.Id }, match);
         }
+
+        [HttpGet("recommendations/{clientId}")]
+        public async Task<ActionResult<IEnumerable<MatchRecommendation>>> GetRecommendations(int clientId, [FromQuery] int top = 5)
+        {
+            if (top < 1) top = 5;
+
+            var client = await _context.Clients.Include(c => c.NatalChart).FirstOrDefaultAsync(c => c.Id == clientId);
+            if (client == null)
+            {
+                return NotFound();
+            }
+
+            var others = await _context.Clients.Include(c => c.NatalChart).Where(c => c.Id != clientId).ToListAsync();
+
+            var recs = others.Select(o =>
+            {
+                var detail = _matchService.CalculateCompatibilityDetail(client.NatalChart, o.NatalChart);
+                return new MatchRecommendation
+                {
+                    Client = o,
+                    Score = detail.Score,
+                    Reasons = detail.Reasons
+                };
+            })
+            .OrderByDescending(r => r.Score)
+            .Take(top)
+            .ToList();
+
+            return recs;
+        }
     }
 }

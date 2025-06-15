@@ -27,5 +27,33 @@ namespace MatchingApp.Api.Services
 
             return score;
         }
+
+        public CompatibilityResult CalculateCompatibilityDetail(NatalChart? a, NatalChart? b)
+        {
+            var result = new CompatibilityResult();
+            if (a == null || b == null)
+            {
+                result.Reasons.Add("Missing natal chart information");
+                return result;
+            }
+
+            if (!string.IsNullOrEmpty(a.SunSign) && a.SunSign == b.SunSign)
+            {
+                result.Score += 4;
+                result.Reasons.Add($"Both share Sun sign {a.SunSign}");
+            }
+            if (!string.IsNullOrEmpty(a.MoonSign) && a.MoonSign == b.MoonSign)
+            {
+                result.Score += 3;
+                result.Reasons.Add($"Both share Moon sign {a.MoonSign}");
+            }
+            if (!string.IsNullOrEmpty(a.Ascendant) && a.Ascendant == b.Ascendant)
+            {
+                result.Score += 3;
+                result.Reasons.Add($"Both share Ascendant {a.Ascendant}");
+            }
+
+            return result;
+        }
     }
 }

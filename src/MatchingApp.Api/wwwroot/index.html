@@ -121,6 +121,18 @@
             <progress id="match-score" value="0" max="100" style="width:100%; display:none;"></progress>
             <div id="match-percent"></div>
         </section>
+
+        <section>
+            <h2>Find Matches</h2>
+            <label>Client ID:
+                <input type="number" id="find-id">
+            </label>
+            <label>Top N:
+                <input type="number" id="find-top" value="5">
+            </label>
+            <button id="find-btn">Find</button>
+            <div id="find-result" class="result"></div>
+        </section>
     </main>
     <script>
         const apiBase = '/api/clients';
@@ -194,6 +206,20 @@
                 bar.style.display = 'none';
                 percent.textContent = '';
             }
+        });
+
+        document.getElementById('find-btn').addEventListener('click', async () => {
+            const id = document.getElementById('find-id').value;
+            let top = document.getElementById('find-top').value || 5;
+            if (!id) return;
+            const res = await fetch(`${matchBase}/recommendations/${id}?top=${top}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            document.getElementById('find-result').innerHTML = data.map(r =>
+                `<div>${renderClient(r.client)}<br>Score: ${r.score}/10<ul>` +
+                r.reasons.map(s => `<li>${s}</li>`).join('') +
+                '</ul></div>'
+            ).join('<hr>');
         });
     </script>
 </body>

@@ -24,11 +24,16 @@ The API exposes endpoints under `/api/clients`:
 - `PUT /api/clients/{id}` – update a client
 - `DELETE /api/clients/{id}` – remove a client
 
+Additional match related endpoints under `/api/matches`:
+
+- `POST /api/matches` – create a match record between two clients
+- `GET /api/matches/recommendations/{clientId}?top=5` – find the top matches for a client. The score is returned on a 0‑10 scale along with text reasons explaining the compatibility.
+
 
 
 ## Web UI
 
 A simple HTML interface is served from the `wwwroot` folder of `MatchingApp.Api`.
 When running the application, navigate to `https://localhost:5001/` (or the configured base URL) to access `index.html`.
-The page now supports creating clients, fetching individual records, listing all clients and creating matches.
-Natal chart details are shown for each client and match scores are visualised with a progress bar.
+The page now supports creating clients, fetching individual records, listing all clients, creating matches and finding recommendations.
+Natal chart details are shown for each client and match scores are visualised with a progress bar. Recommended matches include short textual reasons describing the compatibility.
