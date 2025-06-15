@@ -16,6 +16,13 @@ To run the API locally:
 dotnet run
 ```
 
+The application will automatically apply any pending Entity Framework
+migrations at startup. If you prefer to update the database manually run:
+
+```
+dotnet ef database update
+```
+
 The API exposes endpoints under `/api/clients`:
 
 - `GET /api/clients` – list clients with optional `search`, `page`, and `pageSize` query parameters
@@ -23,6 +30,8 @@ The API exposes endpoints under `/api/clients`:
 - `POST /api/clients` – create a client
 - `PUT /api/clients/{id}` – update a client
 - `DELETE /api/clients/{id}` – remove a client
+
+Clients now include `gender` and `preferredGender` properties used to filter match recommendations.
 
 Additional match related endpoints under `/api/matches`:
 
