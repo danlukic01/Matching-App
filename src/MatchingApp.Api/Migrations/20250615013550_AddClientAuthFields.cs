@@ -13,7 +13,9 @@ namespace MatchingApp.Api.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "Email",
                 table: "Clients",
-                type: "nvarchar(450)",
+
+                type: "nvarchar(max)",
+
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
