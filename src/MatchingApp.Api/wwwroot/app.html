@@ -3,64 +3,165 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Matching App</title>
+    <title>Destina — Find Your Match, Guided by the Stars</title>
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
         body {
             font-family: 'Roboto', sans-serif;
-            background: #f7f7f7;
+            background: linear-gradient(120deg, #e7e9fa 0%, #f7f7fa 100%);
+            min-height: 100vh;
             margin: 0;
-            padding: 2rem;
             color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
+
         main {
             max-width: 500px;
-            margin: 0 auto;
+            margin: 48px auto;
             background: #fff;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 2.5rem 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(80, 99, 167, 0.14), 0 2px 8px rgba(80,99,167,0.08);
+            border: 1px solid #eef2fb;
         }
-        h1 { text-align: center; margin-bottom: 1rem; }
-        label { display: block; margin-top: 1rem; font-weight: 500; }
+
+        .logo-wrap {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .logo-img {
+            height: 100px;
+            display: block;
+            margin: 0 auto 1rem auto;
+            box-shadow: 0 2px 20px #c9d4f3, 0 0 0 8px #f6f8fa;
+            border-radius: 12px;
+            background: #101429;
+        }
+
+        .star-divider {
+            font-size: 2rem;
+            color: #d9b3ff;
+            margin-bottom: .2rem;
+            line-height: 1;
+        }
+
+        h1 {
+            margin-bottom: 0;
+            font-size: 2.4rem;
+            font-weight: 700;
+            letter-spacing: .02em;
+            text-align: center;
+        }
+
+        .tagline {
+            color: #5063a7;
+            font-size: 1.18rem;
+            letter-spacing: .01em;
+            display: block;
+            margin-bottom: 1.2rem;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-top: 1rem;
+            font-weight: 500;
+        }
+
         input, select {
             width: 100%;
             padding: .5rem;
             margin-top: .25rem;
             border: 1px solid #ccc;
             border-radius: 4px;
+            font-size: 1rem;
         }
+
         button {
-            background: #0069d9;
+            background: linear-gradient(90deg,#5063a7,#7f8fd1);
             color: #fff;
             border: none;
-            padding: .6rem 1.2rem;
-            border-radius: 4px;
+            padding: .75rem 1.6rem;
+            border-radius: 6px;
             cursor: pointer;
             margin-top: 1rem;
+            margin-right: 1rem;
+            font-size: 1.05rem;
+            box-shadow: 0 2px 10px rgba(80,99,167,0.08);
+            transition: background 0.2s, box-shadow 0.2s;
         }
-        button:hover { background: #0053ba; }
+
+            button:hover {
+                background: linear-gradient(90deg,#6e89e6,#998de0);
+                box-shadow: 0 4px 16px rgba(80,99,167,0.19);
+            }
+
         .card {
             border: 1px solid #eee;
             padding: 1rem;
             border-radius: 6px;
             margin-top: 1rem;
+            box-shadow: 0 2px 8px rgba(80,99,167,0.06);
+            background: #f7f8fd;
+        }
+
+        .profile-summary-name {
+            font-weight: 700;
+            font-size: 1.18rem;
+            margin-bottom: .7rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        .profile-summary-details {
+            color: #555;
+            margin-bottom: 1.3rem;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            main {
+                max-width: 98vw;
+                padding: 1.1rem 0.3rem;
+            }
+
+            .logo-img {
+                height: 64px;
+            }
         }
     </style>
 </head>
 <body>
     <main>
-        <h1>Matching App</h1>
+        <div class="logo-wrap">
+            <img src="/images/destina-logo.png" alt="Destina logo" class="logo-img">
+            <span class="tagline">Find Your Match, Guided by the Stars</span>
+        </div>
         <section id="landing-section">
-            <p>Welcome to Matching App!</p>
+            <p style="text-align:center; color:#5063a7; font-size:1.04rem;">
+                Welcome to Destina!
+            </p>
             <form id="login-form">
-                <label>Email:
-                    <input type="email" id="login-email" required>
+                <label>
+                    Email:
+                    <input type="email" id="login-email" required autocomplete="email">
                 </label>
-                <label>Password:
-                    <input type="password" id="login-password" required>
+                <label>
+                    Password:
+                    <input type="password" id="login-password" required autocomplete="current-password">
                 </label>
                 <button type="submit" id="login-btn">Log In</button>
             </form>
@@ -69,22 +170,28 @@
 
         <section id="profile-form-section" style="display:none;">
             <form id="profile-form">
-                <label>Email:
-                    <input type="email" id="email" required>
+                <label>
+                    Email:
+                    <input type="email" id="email" required autocomplete="email">
                 </label>
-                <label>Password:
-                    <input type="password" id="password" required>
+                <label>
+                    Password:
+                    <input type="password" id="password" required autocomplete="new-password">
                 </label>
-                <label>Name:
+                <label>
+                    Name:
                     <input type="text" id="name" required>
                 </label>
-                <label>Birth Date:
+                <label>
+                    Birth Date:
                     <input type="date" id="birthDate" required>
                 </label>
-                <label>Birth Time:
+                <label>
+                    Birth Time:
                     <input type="time" id="birthTime" required>
                 </label>
-                <label>Birth Location:
+                <label>
+                    Birth Location:
                     <input type="text" id="birthLocation" required>
                 </label>
                 <button type="submit">Create My Profile</button>
@@ -92,17 +199,22 @@
         </section>
 
         <section id="profile-summary" style="display:none;">
-            <p><strong id="summary-name"></strong></p>
-            <p>Birth Date: <span id="summary-birthDate"></span></p>
-            <p>Birth Time: <span id="summary-birthTime"></span></p>
-            <p>Birth Location: <span id="summary-birthLocation"></span></p>
-            <button id="edit-btn">Edit Profile</button>
-            <button id="find-btn">Find Matches</button>
+            <div class="profile-summary-name" id="summary-name"></div>
+            <div class="profile-summary-details">
+                <p style="margin:0;">Birth Date: <span id="summary-birthDate"></span></p>
+                <p style="margin:0;">Birth Time: <span id="summary-birthTime"></span></p>
+                <p style="margin:0;">Birth Location: <span id="summary-birthLocation"></span></p>
+            </div>
+            <div style="text-align:center;">
+                <button id="edit-btn">Edit Profile</button>
+                <button id="find-btn">Find Matches</button>
+            </div>
         </section>
 
         <section id="matches-section" style="display:none;">
-            <h2>Top Matches</h2>
-            <label>Show Top:
+            <h2 style="text-align:center;color:#5063a7;">Top Matches</h2>
+            <label>
+                Show Top:
                 <select id="top-select">
                     <option value="5">5</option>
                     <option value="10">10</option>
@@ -190,7 +302,7 @@
             showProfileForm();
             document.getElementById('name').value = currentClient.name;
             document.getElementById('birthDate').value = currentClient.birthDate.split('T')[0];
-            document.getElementById('birthTime').value = currentClient.birthTime.substring(0,5);
+            document.getElementById('birthTime').value = currentClient.birthTime.substring(0, 5);
             document.getElementById('birthLocation').value = currentClient.birthLocation || '';
         });
 
