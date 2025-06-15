@@ -34,6 +34,7 @@ Additional match related endpoints under `/api/matches`:
 ## Web UI
 
 A simple HTML interface is served from the `wwwroot` folder of `MatchingApp.Api`.
-When running the application, navigate to `https://localhost:5001/` (or the configured base URL) to access `index.html`.
-The page now supports creating clients, fetching individual records, listing all clients, creating matches and finding recommendations.
-Natal chart details are shown for each client and match scores are visualised with a progress bar. Recommended matches include short textual reasons describing the compatibility.
+`index.html` exposes the admin style CRUD forms used for testing the API.
+For a cleaner user experience open `app.html` instead – this page lets a user
+create their profile and immediately search for compatible matches.
+Natal chart details are shown for each match along with a percentage score.

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Matching App</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f7f7f7;
+            margin: 0;
+            padding: 2rem;
+            color: #333;
+        }
+        main {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        h1 { text-align: center; margin-bottom: 1rem; }
+        label { display: block; margin-top: 1rem; font-weight: 500; }
+        input, select {
+            width: 100%;
+            padding: .5rem;
+            margin-top: .25rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background: #0069d9;
+            color: #fff;
+            border: none;
+            padding: .6rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        button:hover { background: #0053ba; }
+        .card {
+            border: 1px solid #eee;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Matching App</h1>
+        <section id="profile-form-section">
+            <form id="profile-form">
+                <label>Name:
+                    <input type="text" id="name" required>
+                </label>
+                <label>Birth Date:
+                    <input type="date" id="birthDate" required>
+                </label>
+                <label>Birth Time:
+                    <input type="time" id="birthTime" required>
+                </label>
+                <label>Birth Location:
+                    <input type="text" id="birthLocation" required>
+                </label>
+                <button type="submit">Create My Profile</button>
+            </form>
+        </section>
+
+        <section id="profile-summary" style="display:none;">
+            <p><strong id="summary-name"></strong></p>
+            <p>Birth Date: <span id="summary-birthDate"></span></p>
+            <p>Birth Time: <span id="summary-birthTime"></span></p>
+            <p>Birth Location: <span id="summary-birthLocation"></span></p>
+            <button id="edit-btn">Edit Profile</button>
+            <button id="find-btn">Find Matches</button>
+        </section>
+
+        <section id="matches-section" style="display:none;">
+            <h2>Top Matches</h2>
+            <label>Show Top:
+                <select id="top-select">
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                </select>
+            </label>
+            <div id="matches-list"></div>
+            <button id="back-btn">Back to Profile</button>
+        </section>
+    </main>
+    <script>
+        const apiClients = '/api/clients';
+        const apiMatches = '/api/matches';
+        let currentClient = null;
+
+        async function loadProfile() {
+            const id = localStorage.getItem('clientId');
+            if (id) {
+                const res = await fetch(`${apiClients}/${id}`);
+                if (res.ok) {
+                    currentClient = await res.json();
+                    showProfileSummary();
+                    return;
+                }
+                localStorage.removeItem('clientId');
+            }
+            showProfileForm();
+        }
+
+        function showProfileForm() {
+            document.getElementById('profile-form-section').style.display = 'block';
+            document.getElementById('profile-summary').style.display = 'none';
+            document.getElementById('matches-section').style.display = 'none';
+        }
+
+        function showProfileSummary() {
+            const c = currentClient;
+            document.getElementById('summary-name').textContent = c.name;
+            document.getElementById('summary-birthDate').textContent = c.birthDate.split('T')[0];
+            document.getElementById('summary-birthTime').textContent = c.birthTime;
+            document.getElementById('summary-birthLocation').textContent = c.birthLocation || '';
+            document.getElementById('profile-form-section').style.display = 'none';
+            document.getElementById('profile-summary').style.display = 'block';
+            document.getElementById('matches-section').style.display = 'none';
+        }
+
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const client = {
+                name: document.getElementById('name').value,
+                birthDate: document.getElementById('birthDate').value,
+                birthTime: document.getElementById('birthTime').value + ':00',
+                birthLocation: document.getElementById('birthLocation').value
+            };
+            const res = await fetch(apiClients, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(client)
+            });
+            if (res.ok) {
+                currentClient = await res.json();
+                localStorage.setItem('clientId', currentClient.id);
+                showProfileSummary();
+            }
+        });
+
+        document.getElementById('edit-btn').addEventListener('click', () => {
+            showProfileForm();
+            document.getElementById('name').value = currentClient.name;
+            document.getElementById('birthDate').value = currentClient.birthDate.split('T')[0];
+            document.getElementById('birthTime').value = currentClient.birthTime.substring(0,5);
+            document.getElementById('birthLocation').value = currentClient.birthLocation || '';
+        });
+
+        document.getElementById('find-btn').addEventListener('click', () => {
+            document.getElementById('matches-section').style.display = 'block';
+            document.getElementById('profile-summary').style.display = 'none';
+            loadMatches();
+        });
+
+        document.getElementById('back-btn').addEventListener('click', () => {
+            showProfileSummary();
+        });
+
+        document.getElementById('top-select').addEventListener('change', loadMatches);
+
+        async function loadMatches() {
+            const top = document.getElementById('top-select').value;
+            const res = await fetch(`${apiMatches}/recommendations/${currentClient.id}?top=${top}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            const list = document.getElementById('matches-list');
+            list.innerHTML = data.map(m =>
+                `<div class="card"><strong>${m.client.name}</strong><br>Score: ${m.score}%</div>`
+            ).join('');
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>
