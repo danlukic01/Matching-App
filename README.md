@@ -24,10 +24,7 @@ The API exposes endpoints under `/api/clients`:
 - `PUT /api/clients/{id}` – update a client
 - `DELETE /api/clients/{id}` – remove a client
 
-The API exposes matchmaking endpoints under `/api/matches`:
-- `GET /api/matches` – list all matches
-- `GET /api/matches/{id}` – retrieve a single match
-- `POST /api/matches` – create a match between two clients by providing their `clientAId` and `clientBId`
+
 
 ## Web UI
 

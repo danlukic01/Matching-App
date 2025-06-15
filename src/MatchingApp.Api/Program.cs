@@ -10,6 +10,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<NatalChartService>();
 builder.Services.AddScoped<MatchService>();
 
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
