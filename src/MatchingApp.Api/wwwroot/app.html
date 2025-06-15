@@ -50,13 +50,6 @@
             background: #101429;
         }
 
-        .star-divider {
-            font-size: 2rem;
-            color: #d9b3ff;
-            margin-bottom: .2rem;
-            line-height: 1;
-        }
-
         h1 {
             margin-bottom: 0;
             font-size: 2.4rem;
@@ -108,40 +101,7 @@
                 box-shadow: 0 4px 16px rgba(80,99,167,0.19);
             }
 
-        .card {
-            border: 1px solid #eee;
-            padding: 1rem;
-            border-radius: 6px;
-            margin-top: 1rem;
-            box-shadow: 0 2px 8px rgba(80,99,167,0.06);
-            background: #f7f8fd;
-        }
-
-        .profile-summary-name {
-            font-weight: 700;
-            font-size: 1.18rem;
-            margin-bottom: .7rem;
-            margin-top: 0.5rem;
-            text-align: center;
-        }
-
-        .profile-summary-details {
-            color: #555;
-            margin-bottom: 1.3rem;
-            font-size: 1rem;
-            text-align: center;
-        }
-
-        @media (max-width: 600px) {
-            main {
-                max-width: 98vw;
-                padding: 1.1rem 0.3rem;
-            }
-
-            .logo-img {
-                height: 64px;
-            }
-        }
+        /* === MATCHES CARDS UPGRADE === */
         .matches-title {
             color: #4957b8;
             text-align: center;
@@ -161,13 +121,14 @@
 
         .match-card {
             background: linear-gradient(110deg, #edf2ff 80%, #f7e7fa 100%);
-            border-radius: 14px;
-            box-shadow: 0 2px 18px rgba(80,99,167,0.10);
-            padding: 1.1rem 1.2rem 1.1rem 1.2rem;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(80,99,167,0.08);
+            padding: 1.1rem 1.4rem;
             display: flex;
             align-items: center;
             gap: 1.1rem;
-            border: 1.5px solid #dde3f7;
+            border: 1.5px solid #e5eafe;
+            margin-bottom: 0;
             transition: box-shadow .16s;
             position: relative;
         }
@@ -180,42 +141,94 @@
             width: 54px;
             height: 54px;
             border-radius: 50%;
-            background: #b9bffd;
+            background: linear-gradient(135deg,#4957b8,#9c84e7);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
-            color: #3b436b;
+            font-size: 2rem;
+            color: #fff;
             font-weight: 700;
-            margin-right: 0.5rem;
-            border: 2.5px solid #ece7ff;
-            box-shadow: 0 2px 8px rgba(150,120,227,0.06);
+            box-shadow: 0 1px 4px rgba(80,99,167,0.14);
         }
 
         .match-details {
             flex: 1;
+            min-width: 0;
         }
 
         .match-name {
-            font-weight: 600;
-            font-size: 1.13rem;
-            margin-bottom: 0.15rem;
-        }
-
-        .match-score {
-            color: #6d48d4;
             font-weight: 700;
-            font-size: 1.02rem;
+            font-size: 1.23rem;
+            margin-bottom: .2rem;
+            color: #323a61;
+            letter-spacing: .01em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        .match-stars {
-            display: inline-block;
-            color: #ffe066;
-            font-size: 1.13rem;
-            margin-left: 0.18rem;
-            letter-spacing: -.06em;
+        .match-score-bar {
+            margin-top: 0.1rem;
+            width: 100%;
         }
 
+        .match-score-value {
+            color: #784dd4;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .score-bar-bg {
+            background: #e5eafe;
+            border-radius: 8px;
+            height: 8px;
+            margin-top: 5px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .score-bar-fill {
+            background: linear-gradient(90deg,#6e89e6,#998de0);
+            height: 100%;
+            border-radius: 8px 0 0 8px;
+            transition: width .5s;
+        }
+
+        /* -- Profile summary and other sections -- */
+        .profile-summary-name {
+            font-weight: 700;
+            font-size: 1.18rem;
+            margin-bottom: .7rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        .profile-summary-details {
+            color: #555;
+            margin-bottom: 1.3rem;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .card {
+            border: 1px solid #eee;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            box-shadow: 0 2px 8px rgba(80,99,167,0.06);
+            background: #f7f8fd;
+        }
+
+        @media (max-width: 600px) {
+            main {
+                max-width: 98vw;
+                padding: 1.1rem 0.3rem;
+            }
+
+            .logo-img {
+                height: 64px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -297,7 +310,6 @@
             <div id="matches-list" class="matches-list"></div>
             <button id="back-btn" style="margin-top:1.3rem;">Back to Profile</button>
         </section>
-
     </main>
     <script>
         const apiClients = '/api/clients';
@@ -424,7 +436,6 @@
                 headers: { 'X-Auth-Token': authToken }
             });
 
-
             const list = document.getElementById('matches-list');
 
             if (res.status === 401) {
@@ -437,7 +448,7 @@
 
             if (!res.ok) {
                 list.innerHTML = `<p style="text-align:center;">Failed to load matches (status ${res.status}).</p>`;
-  return;
+                return;
             }
 
             const data = await res.json();
@@ -447,7 +458,18 @@
             }
 
             list.innerHTML = data.map(m =>
-                `<div class="card"><strong>${m.client.name}</strong><br>Score: ${m.score}%</div>`
+                `<div class="match-card">
+                        <div class="match-avatar">${m.client.name.charAt(0)}</div>
+                        <div class="match-details">
+                            <div class="match-name">${m.client.name}</div>
+                            <div class="match-score-bar">
+                                <span class="match-score-value">Score: ${m.score.toFixed(1)}%</span>
+                                <div class="score-bar-bg">
+                                    <div class="score-bar-fill" style="width:${m.score.toFixed(1)}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`
             ).join('');
         }
 
