@@ -24,6 +24,8 @@ The API exposes endpoints under `/api/clients`:
 - `PUT /api/clients/{id}` – update a client
 - `DELETE /api/clients/{id}` – remove a client
 
+Clients now include `gender` and `preferredGender` properties used to filter match recommendations.
+
 Additional match related endpoints under `/api/matches`:
 
 - `POST /api/matches` – create a match record between two clients

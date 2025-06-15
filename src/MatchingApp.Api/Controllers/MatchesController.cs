@@ -125,6 +125,8 @@ namespace MatchingApp.Api.Controllers
             var others = await _context.Clients
                 .Include(c => c.NatalChart)
                 .Where(c => c.Id != clientId && c.Name != client.Name)
+                .Where(c => string.IsNullOrEmpty(client.PreferredGender) || c.Gender == client.PreferredGender)
+                .Where(c => string.IsNullOrEmpty(c.PreferredGender) || c.PreferredGender == client.Gender)
                 .ToListAsync();
 
             foreach (var other in others.Where(o => o.NatalChart == null))

@@ -268,6 +268,23 @@
                     Birth Location:
                     <input type="text" id="birthLocation" required>
                 </label>
+                <label>
+                    Gender:
+                    <select id="gender">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </label>
+                <label>
+                    Looking For:
+                    <select id="preferredGender">
+                        <option value="">Any</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </label>
                 <button type="submit">Create My Profile</button>
             </form>
         </section>
@@ -278,6 +295,8 @@
                 <p style="margin:0;">Birth Date: <span id="summary-birthDate"></span></p>
                 <p style="margin:0;">Birth Time: <span id="summary-birthTime"></span></p>
                 <p style="margin:0;">Birth Location: <span id="summary-birthLocation"></span></p>
+                <p style="margin:0;">Gender: <span id="summary-gender"></span></p>
+                <p style="margin:0;">Looking For: <span id="summary-preferredGender"></span></p>
             </div>
             <div style="text-align:center;">
                 <button id="edit-btn">Edit Profile</button>
@@ -342,6 +361,8 @@
             document.getElementById('summary-birthDate').textContent = c.birthDate.split('T')[0];
             document.getElementById('summary-birthTime').textContent = c.birthTime;
             document.getElementById('summary-birthLocation').textContent = c.birthLocation || '';
+            document.getElementById('summary-gender').textContent = c.gender || '';
+            document.getElementById('summary-preferredGender').textContent = c.preferredGender || 'Any';
             document.getElementById('landing-section').style.display = 'none';
             document.getElementById('profile-form-section').style.display = 'none';
             document.getElementById('profile-summary').style.display = 'block';
@@ -350,14 +371,16 @@
 
         document.getElementById('profile-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const client = {
-                name: document.getElementById('name').value,
-                birthDate: document.getElementById('birthDate').value,
-                birthTime: document.getElementById('birthTime').value + ':00',
-                birthLocation: document.getElementById('birthLocation').value,
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value
-            };
+                const client = {
+                    name: document.getElementById('name').value,
+                    birthDate: document.getElementById('birthDate').value,
+                    birthTime: document.getElementById('birthTime').value + ':00',
+                    birthLocation: document.getElementById('birthLocation').value,
+                    gender: document.getElementById('gender').value,
+                    preferredGender: document.getElementById('preferredGender').value,
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value
+                };
             const res = await fetch(`${apiAuth}/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -379,6 +402,8 @@
             document.getElementById('birthDate').value = currentClient.birthDate.split('T')[0];
             document.getElementById('birthTime').value = currentClient.birthTime.substring(0, 5);
             document.getElementById('birthLocation').value = currentClient.birthLocation || '';
+            document.getElementById('gender').value = currentClient.gender || 'Male';
+            document.getElementById('preferredGender').value = currentClient.preferredGender || '';
         });
 
         document.getElementById('create-profile-btn').addEventListener('click', showProfileForm);
