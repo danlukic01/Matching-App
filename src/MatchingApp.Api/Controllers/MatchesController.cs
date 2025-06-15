@@ -14,12 +14,14 @@ namespace MatchingApp.Api.Controllers
         private readonly AppDbContext _context;
         private readonly MatchService _matchService;
         private readonly AuthService _authService;
+        private readonly NatalChartService _natalService;
 
-        public MatchesController(AppDbContext context, MatchService matchService, AuthService authService)
+        public MatchesController(AppDbContext context, MatchService matchService, AuthService authService, NatalChartService natalService)
         {
             _context = context;
             _matchService = matchService;
             _authService = authService;
+            _natalService = natalService;
         }
 
         private int? GetAuthenticatedClientId()
@@ -115,10 +117,25 @@ namespace MatchingApp.Api.Controllers
                 return NotFound();
             }
 
+            if (client.NatalChart == null)
+            {
+                client.NatalChart = _natalService.Calculate(client);
+            }
+
             var others = await _context.Clients
                 .Include(c => c.NatalChart)
                 .Where(c => c.Id != clientId && c.Name != client.Name)
                 .ToListAsync();
+
+            foreach (var other in others.Where(o => o.NatalChart == null))
+            {
+                other.NatalChart = _natalService.Calculate(other);
+            }
+
+            if (_context.ChangeTracker.HasChanges())
+            {
+                await _context.SaveChangesAsync();
+            }
 
             var recs = others.Select(o =>
             {
