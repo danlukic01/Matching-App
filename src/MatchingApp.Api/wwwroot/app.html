@@ -424,6 +424,7 @@
                 headers: { 'X-Auth-Token': authToken }
             });
 
+
             const list = document.getElementById('matches-list');
 
             if (res.status === 401) {
@@ -436,7 +437,7 @@
 
             if (!res.ok) {
                 list.innerHTML = `<p style="text-align:center;">Failed to load matches (status ${res.status}).</p>`;
-                return;
+  return;
             }
 
             const data = await res.json();
