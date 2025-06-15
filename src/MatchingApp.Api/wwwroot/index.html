@@ -49,11 +49,24 @@
         button:hover {
             background: #0053ba;
         }
-        pre {
+        .result {
             background: #f1f3f4;
             padding: 1rem;
             border-radius: 4px;
-            white-space: pre-wrap;
+            margin-top: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: .5rem;
+            text-align: left;
+        }
+        th {
+            background: #f1f3f4;
         }
     </style>
 </head>
@@ -77,19 +90,47 @@
                 </label>
                 <button type="submit">Create</button>
             </form>
-            <pre id="create-result"></pre>
+            <div id="create-result" class="result"></div>
         </section>
+
         <section>
             <h2>Get Client</h2>
             <label>Client ID:
                 <input type="number" id="get-id">
             </label>
             <button id="get-btn">Get Client</button>
-            <pre id="get-result"></pre>
+            <div id="get-result" class="result"></div>
+        </section>
+
+        <section>
+            <h2>List Clients</h2>
+            <button id="list-btn">Load Clients</button>
+            <table id="list-result"></table>
+        </section>
+
+        <section>
+            <h2>Create Match</h2>
+            <label>Client A ID:
+                <input type="number" id="match-a">
+            </label>
+            <label>Client B ID:
+                <input type="number" id="match-b">
+            </label>
+            <button id="match-btn">Match</button>
+            <div id="match-result" class="result"></div>
+            <progress id="match-score" value="0" max="100" style="width:100%; display:none;"></progress>
+            <div id="match-percent"></div>
         </section>
     </main>
     <script>
         const apiBase = '/api/clients';
+        const matchBase = '/api/matches';
+
+        function renderClient(client) {
+            const chart = client.natalChart || {};
+            return `<strong>${client.name}</strong> (ID: ${client.id})<br>` +
+                   `Sun: ${chart.sunSign || ''} | Moon: ${chart.moonSign || ''} | Asc: ${chart.ascendant || ''}`;
+        }
 
         document.getElementById('create-form').addEventListener('submit', async e => {
             e.preventDefault();
@@ -105,7 +146,7 @@
                 body: JSON.stringify(client)
             });
             const data = await res.json();
-            document.getElementById('create-result').textContent = JSON.stringify(data, null, 2);
+            document.getElementById('create-result').innerHTML = renderClient(data);
         });
 
         document.getElementById('get-btn').addEventListener('click', async () => {
@@ -114,9 +155,44 @@
             const res = await fetch(`${apiBase}/${id}`);
             if (res.ok) {
                 const data = await res.json();
-                document.getElementById('get-result').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('get-result').innerHTML = renderClient(data);
             } else {
                 document.getElementById('get-result').textContent = 'Client not found';
+            }
+        });
+
+        document.getElementById('list-btn').addEventListener('click', async () => {
+            const res = await fetch(apiBase);
+            if (!res.ok) return;
+            const data = await res.json();
+            const table = document.getElementById('list-result');
+            table.innerHTML = '<tr><th>ID</th><th>Name</th><th>Sun</th><th>Moon</th><th>Asc</th></tr>' +
+                data.map(c => `<tr><td>${c.id}</td><td>${c.name}</td>` +
+                `<td>${c.natalChart?.sunSign || ''}</td><td>${c.natalChart?.moonSign || ''}</td>` +
+                `<td>${c.natalChart?.ascendant || ''}</td></tr>`).join('');
+        });
+
+        document.getElementById('match-btn').addEventListener('click', async () => {
+            const a = document.getElementById('match-a').value;
+            const b = document.getElementById('match-b').value;
+            if (!a || !b) return;
+            const res = await fetch(matchBase, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ clientAId: parseInt(a), clientBId: parseInt(b) })
+            });
+            const bar = document.getElementById('match-score');
+            const percent = document.getElementById('match-percent');
+            if (res.ok) {
+                const data = await res.json();
+                bar.style.display = 'block';
+                bar.value = data.score;
+                document.getElementById('match-result').textContent = `Match ID: ${data.id}`;
+                percent.textContent = `Compatibility: ${data.score}%`;
+            } else {
+                document.getElementById('match-result').textContent = 'Match failed';
+                bar.style.display = 'none';
+                percent.textContent = '';
             }
         });
     </script>
