@@ -103,6 +103,36 @@
         </section>
 
         <section>
+            <h2>Update Client</h2>
+            <label>Client ID:
+                <input type="number" id="update-id">
+            </label>
+            <label>Name:
+                <input type="text" id="update-name">
+            </label>
+            <label>Birth Date:
+                <input type="date" id="update-birthDate">
+            </label>
+            <label>Birth Time:
+                <input type="time" id="update-birthTime">
+            </label>
+            <label>Birth Location:
+                <input type="text" id="update-birthLocation">
+            </label>
+            <button id="update-btn">Update</button>
+            <div id="update-result" class="result"></div>
+        </section>
+
+        <section>
+            <h2>Delete Client</h2>
+            <label>Client ID:
+                <input type="number" id="delete-id">
+            </label>
+            <button id="delete-btn">Delete</button>
+            <div id="delete-result" class="result"></div>
+        </section>
+
+        <section>
             <h2>List Clients</h2>
             <button id="list-btn">Load Clients</button>
             <table id="list-result"></table>
@@ -170,6 +200,39 @@
                 document.getElementById('get-result').innerHTML = renderClient(data);
             } else {
                 document.getElementById('get-result').textContent = 'Client not found';
+            }
+        });
+
+        document.getElementById('update-btn').addEventListener('click', async () => {
+            const id = document.getElementById('update-id').value;
+            if (!id) return;
+            const client = {
+                id: parseInt(id),
+                name: document.getElementById('update-name').value,
+                birthDate: document.getElementById('update-birthDate').value,
+                birthTime: document.getElementById('update-birthTime').value ? document.getElementById('update-birthTime').value + ':00' : undefined,
+                birthLocation: document.getElementById('update-birthLocation').value
+            };
+            const res = await fetch(`${apiBase}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(client)
+            });
+            if (res.ok) {
+                document.getElementById('update-result').textContent = 'Client updated';
+            } else {
+                document.getElementById('update-result').textContent = 'Update failed';
+            }
+        });
+
+        document.getElementById('delete-btn').addEventListener('click', async () => {
+            const id = document.getElementById('delete-id').value;
+            if (!id) return;
+            const res = await fetch(`${apiBase}/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                document.getElementById('delete-result').textContent = 'Client deleted';
+            } else {
+                document.getElementById('delete-result').textContent = 'Delete failed';
             }
         });
 
