@@ -1,4 +1,5 @@
 using MatchingApp.Api.Models;
+using SwissEphNet;
 
 namespace MatchingApp.Api.Services
 {
@@ -10,45 +11,59 @@ namespace MatchingApp.Api.Services
             "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
         };
 
+        private readonly SwissEph _swe;
+
+        public NatalChartService()
+        {
+            _swe = new SwissEph();
+            _swe.swe_set_ephe_path(null);
+        }
+
         public NatalChart Calculate(Client client)
         {
-            var sun = GetSunSign(client.BirthDate);
-            var moon = GetSignFromOffset(client.BirthDate.DayOfYear + client.BirthTime.Hours);
-            var asc = GetSignFromOffset((int)client.BirthTime.TotalMinutes + (client.BirthLocation?.Length ?? 0));
+            double hour = client.BirthTime.TotalHours;
+            DateTime d = client.BirthDate;
+            double jd = _swe.swe_julday(d.Year, d.Month, d.Day, hour, SwissEph.SE_GREG_CAL);
+            int flag = SwissEph.SEFLG_SWIEPH;
 
-            return new NatalChart
+            var chart = new NatalChart
             {
-                SunSign = sun,
-                MoonSign = moon,
-                Ascendant = asc
+                SunSign = GetSign(CalcPlanet(jd, SwissEph.SE_SUN, flag)),
+                MoonSign = GetSign(CalcPlanet(jd, SwissEph.SE_MOON, flag)),
+                MercurySign = GetSign(CalcPlanet(jd, SwissEph.SE_MERCURY, flag)),
+                VenusSign = GetSign(CalcPlanet(jd, SwissEph.SE_VENUS, flag)),
+                MarsSign = GetSign(CalcPlanet(jd, SwissEph.SE_MARS, flag)),
+                JupiterSign = GetSign(CalcPlanet(jd, SwissEph.SE_JUPITER, flag)),
+                SaturnSign = GetSign(CalcPlanet(jd, SwissEph.SE_SATURN, flag)),
+                UranusSign = GetSign(CalcPlanet(jd, SwissEph.SE_URANUS, flag)),
+                NeptuneSign = GetSign(CalcPlanet(jd, SwissEph.SE_NEPTUNE, flag)),
+                PlutoSign = GetSign(CalcPlanet(jd, SwissEph.SE_PLUTO, flag)),
+                Ascendant = GetAscendant(jd)
             };
+
+            return chart;
         }
 
-        private string GetSunSign(DateTime date)
+        private double CalcPlanet(double jd, int planet, int flags)
         {
-            int day = date.Day;
-            int month = date.Month;
-
-            return (month, day) switch
-            {
-                (3, >=21) or (4, <=19) => "Aries",
-                (4, >=20) or (5, <=20) => "Taurus",
-                (5, >=21) or (6, <=20) => "Gemini",
-                (6, >=21) or (7, <=22) => "Cancer",
-                (7, >=23) or (8, <=22) => "Leo",
-                (8, >=23) or (9, <=22) => "Virgo",
-                (9, >=23) or (10, <=22) => "Libra",
-                (10, >=23) or (11, <=21) => "Scorpio",
-                (11, >=22) or (12, <=21) => "Sagittarius",
-                (12, >=22) or (1, <=19) => "Capricorn",
-                (1, >=20) or (2, <=18) => "Aquarius",
-                _ => "Pisces"
-            };
+            double[] xx = new double[6];
+            string serr = string.Empty;
+            _swe.swe_calc_ut(jd, planet, flags, xx, ref serr);
+            return xx[0];
         }
 
-        private string GetSignFromOffset(int offset)
+        private string GetAscendant(double jd)
         {
-            int index = Math.Abs(offset) % Signs.Length;
+            double[] cusps = new double[13];
+            double[] ascmc = new double[10];
+            _swe.swe_houses(jd, 0.0, 0.0, 'P', cusps, ascmc);
+            return GetSign(ascmc[0]);
+        }
+
+        private string GetSign(double longitude)
+        {
+            int index = ((int)Math.Floor(longitude / 30.0)) % 12;
+            if (index < 0) index += 12;
             return Signs[index];
         }
     }
