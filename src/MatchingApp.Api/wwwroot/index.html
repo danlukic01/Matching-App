@@ -87,9 +87,21 @@
             <button id="get-btn">Get Client</button>
             <pre id="get-result"></pre>
         </section>
+        <section>
+            <h2>Create Match</h2>
+            <label>Client A ID:
+                <input type="number" id="match-a">
+            </label>
+            <label>Client B ID:
+                <input type="number" id="match-b">
+            </label>
+            <button id="match-btn">Match</button>
+            <pre id="match-result"></pre>
+        </section>
     </main>
     <script>
         const apiBase = '/api/clients';
+        const matchBase = '/api/matches';
 
         document.getElementById('create-form').addEventListener('submit', async e => {
             e.preventDefault();
@@ -117,6 +129,23 @@
                 document.getElementById('get-result').textContent = JSON.stringify(data, null, 2);
             } else {
                 document.getElementById('get-result').textContent = 'Client not found';
+            }
+        });
+
+        document.getElementById('match-btn').addEventListener('click', async () => {
+            const a = document.getElementById('match-a').value;
+            const b = document.getElementById('match-b').value;
+            if (!a || !b) return;
+            const res = await fetch(matchBase, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ clientAId: parseInt(a), clientBId: parseInt(b) })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('match-result').textContent = JSON.stringify(data, null, 2);
+            } else {
+                document.getElementById('match-result').textContent = 'Match failed';
             }
         });
     </script>
