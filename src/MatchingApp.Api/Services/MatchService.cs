@@ -6,26 +6,7 @@ namespace MatchingApp.Api.Services
     {
         public double CalculateCompatibility(NatalChart? a, NatalChart? b)
         {
-            if (a == null || b == null)
-            {
-                return 0.0;
-            }
-
-            double score = 0.0;
-            if (!string.IsNullOrEmpty(a.SunSign) && a.SunSign == b.SunSign)
-            {
-                score += 40;
-            }
-            if (!string.IsNullOrEmpty(a.MoonSign) && a.MoonSign == b.MoonSign)
-            {
-                score += 30;
-            }
-            if (!string.IsNullOrEmpty(a.Ascendant) && a.Ascendant == b.Ascendant)
-            {
-                score += 30;
-            }
-
-            return score;
+            return CalculateCompatibilityDetail(a, b).Score;
         }
 
         public CompatibilityResult CalculateCompatibilityDetail(NatalChart? a, NatalChart? b)
@@ -37,26 +18,31 @@ namespace MatchingApp.Api.Services
                 return result;
             }
 
-            if (!string.IsNullOrEmpty(a.SunSign) && a.SunSign == b.SunSign)
-            {
-                result.Score += 4;
-                result.Reasons.Add($"Both share Sun sign {a.SunSign}");
-            }
-            if (!string.IsNullOrEmpty(a.MoonSign) && a.MoonSign == b.MoonSign)
-            {
-                result.Score += 3;
-                result.Reasons.Add($"Both share Moon sign {a.MoonSign}");
-            }
-            if (!string.IsNullOrEmpty(a.Ascendant) && a.Ascendant == b.Ascendant)
-            {
-                result.Score += 3;
-                result.Reasons.Add($"Both share Ascendant {a.Ascendant}");
-            }
+            CompareSign(result, a.SunSign, b.SunSign, "Sun");
+            CompareSign(result, a.MoonSign, b.MoonSign, "Moon");
+            CompareSign(result, a.MercurySign, b.MercurySign, "Mercury");
+            CompareSign(result, a.VenusSign, b.VenusSign, "Venus");
+            CompareSign(result, a.MarsSign, b.MarsSign, "Mars");
+            CompareSign(result, a.JupiterSign, b.JupiterSign, "Jupiter");
+            CompareSign(result, a.SaturnSign, b.SaturnSign, "Saturn");
+            CompareSign(result, a.UranusSign, b.UranusSign, "Uranus");
+            CompareSign(result, a.NeptuneSign, b.NeptuneSign, "Neptune");
+            CompareSign(result, a.PlutoSign, b.PlutoSign, "Pluto");
+            CompareSign(result, a.Ascendant, b.Ascendant, "Ascendant");
 
-            // Scale score to a 0-100 range for percentage display
-            result.Score *= 10;
+            // Scale to 0-100 percentage (11 possible matches)
+            result.Score = result.Score / 11.0 * 100.0;
 
             return result;
+        }
+
+        private void CompareSign(CompatibilityResult result, string? a, string? b, string label)
+        {
+            if (!string.IsNullOrEmpty(a) && a == b)
+            {
+                result.Score += 1;
+                result.Reasons.Add($"Both share {label} sign {a}");
+            }
         }
     }
 }
