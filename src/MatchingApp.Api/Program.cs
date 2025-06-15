@@ -15,6 +15,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<NatalChartService>();
 builder.Services.AddScoped<MatchService>();
+builder.Services.AddSingleton<AuthService>();
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
