@@ -85,6 +85,14 @@ namespace MatchingApp.Api.Controllers
             {
                 client.NatalChart.SunSign = chart.SunSign;
                 client.NatalChart.MoonSign = chart.MoonSign;
+                client.NatalChart.MercurySign = chart.MercurySign;
+                client.NatalChart.VenusSign = chart.VenusSign;
+                client.NatalChart.MarsSign = chart.MarsSign;
+                client.NatalChart.JupiterSign = chart.JupiterSign;
+                client.NatalChart.SaturnSign = chart.SaturnSign;
+                client.NatalChart.UranusSign = chart.UranusSign;
+                client.NatalChart.NeptuneSign = chart.NeptuneSign;
+                client.NatalChart.PlutoSign = chart.PlutoSign;
                 client.NatalChart.Ascendant = chart.Ascendant;
             }
 
