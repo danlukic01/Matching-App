@@ -29,6 +29,25 @@ Additional match related endpoints under `/api/matches`:
 - `POST /api/matches` – create a match record between two clients
 - `GET /api/matches/recommendations/{clientId}?top=5` – find the top matches for a client. The score is returned on a 0‑10 scale along with text reasons explaining the compatibility.
 
+## Authentication
+
+Email based sign up and log in is handled via `/api/auth`:
+
+- `POST /api/auth/register` – create an account and receive a session token
+- `POST /api/auth/login` – authenticate and receive a session token
+
+Pass the returned token in the `X-Auth-Token` header when calling match related endpoints.
+
+## Database Setup
+
+Entity Framework Core migrations are included. To create or update the database run from the `src/MatchingApp.Api` directory:
+
+```bash
+dotnet ef database update
+```
+
+This command will apply migrations, creating the `Clients` table with `Email` and `PasswordHash` columns among others.
+
 
 
 ## Web UI
