@@ -423,10 +423,21 @@
             const res = await fetch(`${apiMatches}/recommendations/${currentClient.id}?top=${top}`, {
                 headers: { 'X-Auth-Token': authToken }
             });
+
+
             const list = document.getElementById('matches-list');
-            if (!res.ok) {
-                list.innerHTML = '<p style="text-align:center;">Failed to load matches.</p>';
+
+            if (res.status === 401) {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('clientId');
+                alert('Session expired. Please log in again.');
+                showLanding();
                 return;
+            }
+
+            if (!res.ok) {
+                list.innerHTML = `<p style="text-align:center;">Failed to load matches (status ${res.status}).</p>`;
+  return;
             }
 
             const data = await res.json();
