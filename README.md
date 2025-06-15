@@ -24,7 +24,11 @@ The API exposes endpoints under `/api/clients`:
 - `PUT /api/clients/{id}` – update a client
 - `DELETE /api/clients/{id}` – remove a client
 
+
+
 ## Web UI
 
 A simple HTML interface is served from the `wwwroot` folder of `MatchingApp.Api`.
-When running the application, navigate to `https://localhost:5001/` (or the configured base URL) to access `index.html` for creating and retrieving clients using the API.
+When running the application, navigate to `https://localhost:5001/` (or the configured base URL) to access `index.html`.
+The page now supports creating clients, fetching individual records, listing all clients and creating matches.
+Natal chart details are shown for each client and match scores are visualised with a progress bar.
