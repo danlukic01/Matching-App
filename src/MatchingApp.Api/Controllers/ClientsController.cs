@@ -74,6 +74,8 @@ namespace MatchingApp.Api.Controllers
             client.BirthDate = updated.BirthDate;
             client.BirthTime = updated.BirthTime;
             client.BirthLocation = updated.BirthLocation;
+            client.Gender = updated.Gender;
+            client.PreferredGender = updated.PreferredGender;
 
             var chart = _natalService.Calculate(client);
 
