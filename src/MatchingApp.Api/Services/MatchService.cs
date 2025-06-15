@@ -53,6 +53,9 @@ namespace MatchingApp.Api.Services
                 result.Reasons.Add($"Both share Ascendant {a.Ascendant}");
             }
 
+            // Scale score to a 0-100 range for percentage display
+            result.Score *= 10;
+
             return result;
         }
     }

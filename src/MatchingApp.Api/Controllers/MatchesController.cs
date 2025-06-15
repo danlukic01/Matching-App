@@ -94,7 +94,10 @@ namespace MatchingApp.Api.Controllers
                 return NotFound();
             }
 
-            var others = await _context.Clients.Include(c => c.NatalChart).Where(c => c.Id != clientId).ToListAsync();
+            var others = await _context.Clients
+                .Include(c => c.NatalChart)
+                .Where(c => c.Id != clientId && c.Name != client.Name)
+                .ToListAsync();
 
             var recs = others.Select(o =>
             {
