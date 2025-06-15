@@ -17,3 +17,8 @@ dotnet run
 ```
 
 The API exposes endpoints under `/api/clients`.
+
+## Web UI
+
+A simple HTML interface is served from the `wwwroot` folder of `MatchingApp.Api`.
+When running the application, navigate to `https://localhost:5001/` (or the configured base URL) to access `index.html` for creating and retrieving clients using the API.
