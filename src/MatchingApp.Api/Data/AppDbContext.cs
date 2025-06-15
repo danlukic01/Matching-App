@@ -10,5 +10,14 @@ namespace MatchingApp.Api.Data
         public DbSet<Client> Clients => Set<Client>();
         public DbSet<NatalChart> NatalCharts => Set<NatalChart>();
         public DbSet<Match> Matches => Set<Match>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Match>()
+                .HasIndex(m => new { m.ClientAId, m.ClientBId })
+                .IsUnique();
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }

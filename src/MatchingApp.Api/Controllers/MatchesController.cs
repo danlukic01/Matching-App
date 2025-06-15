@@ -50,6 +50,16 @@ namespace MatchingApp.Api.Controllers
                 return BadRequest();
             }
 
+            var existing = await _context.Matches
+                .AnyAsync(m =>
+                    (m.ClientAId == request.ClientAId && m.ClientBId == request.ClientBId) ||
+                    (m.ClientAId == request.ClientBId && m.ClientBId == request.ClientAId));
+
+            if (existing)
+            {
+                return Conflict();
+            }
+
             var clientA = await _context.Clients.Include(c => c.NatalChart).FirstOrDefaultAsync(c => c.Id == request.ClientAId);
             var clientB = await _context.Clients.Include(c => c.NatalChart).FirstOrDefaultAsync(c => c.Id == request.ClientBId);
 
