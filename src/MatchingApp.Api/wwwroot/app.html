@@ -423,9 +423,18 @@
             const res = await fetch(`${apiMatches}/recommendations/${currentClient.id}?top=${top}`, {
                 headers: { 'X-Auth-Token': authToken }
             });
-            if (!res.ok) return;
-            const data = await res.json();
             const list = document.getElementById('matches-list');
+            if (!res.ok) {
+                list.innerHTML = '<p style="text-align:center;">Failed to load matches.</p>';
+                return;
+            }
+
+            const data = await res.json();
+            if (data.length === 0) {
+                list.innerHTML = '<p style="text-align:center;">No matches found.</p>';
+                return;
+            }
+
             list.innerHTML = data.map(m =>
                 `<div class="card"><strong>${m.client.name}</strong><br>Score: ${m.score}%</div>`
             ).join('');
