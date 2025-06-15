@@ -30,11 +30,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Serve app.html as the landing page instead of index.html
 var defaultFileOptions = new DefaultFilesOptions();
 defaultFileOptions.DefaultFileNames.Clear();
 defaultFileOptions.DefaultFileNames.Add("app.html");
 app.UseDefaultFiles(defaultFileOptions);
+
 app.UseStaticFiles();
 app.UseAuthorization();
 app.MapControllers();
