@@ -32,13 +32,23 @@ namespace MatchingApp.Api.Services
 
             // Scale to 0-100 percentage (11 possible matches)
             result.Score = result.Score / 11.0 * 100.0;
+            result.StarRating = Math.Round(result.Score / 20.0, 1);
 
             return result;
         }
 
         private void CompareSign(CompatibilityResult result, string? a, string? b, string label)
         {
-            if (!string.IsNullOrEmpty(a) && a == b)
+            bool match = !string.IsNullOrEmpty(a) && a == b;
+            result.Breakdown.Add(new SignCompatibility
+            {
+                Planet = label,
+                SignA = a,
+                SignB = b,
+                Match = match
+            });
+
+            if (match)
             {
                 result.Score += 1;
                 result.Reasons.Add($"Both share {label} sign {a}");

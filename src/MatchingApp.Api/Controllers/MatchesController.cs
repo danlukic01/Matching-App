@@ -162,7 +162,9 @@ namespace MatchingApp.Api.Controllers
                 {
                     Client = o,
                     Score = detail.Score,
-                    Reasons = detail.Reasons
+                    StarRating = detail.StarRating,
+                    Reasons = detail.Reasons,
+                    Breakdown = detail.Breakdown
                 };
             })
             .OrderByDescending(r => r.Score)
