@@ -198,9 +198,35 @@
             margin-top: .6rem;
         }
 
-            .match-actions button {
-                margin-right: .4rem;
-                margin-top: .2rem;
+        .match-actions button {
+            margin-right: .4rem;
+            margin-top: .2rem;
+        }
+
+        /* === CONTACT REQUEST CARDS === */
+        .request-card {
+            display: flex;
+            align-items: center;
+            gap: .8rem;
+            background: #f7f8fd;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: .8rem 1rem;
+            margin-top: .8rem;
+            box-shadow: 0 2px 8px rgba(80,99,167,0.06);
+        }
+
+        .request-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .request-actions {
+            margin-left: auto;
+        }
+
+            .request-actions button {
+                margin-left: .4rem;
             }
 
         /* -- Profile summary and other sections -- */
@@ -652,7 +678,17 @@
                 const sr = await fetch(`${apiClients}/${r.senderId}`, { headers: { 'X-Auth-Token': authToken } });
                 let name = r.senderId;
                 if (sr.ok) { const cd = await sr.json(); name = cd.name; }
-                return `<div class="card"><strong>${name}</strong> sent a <em>${r.type}</em>${r.message ? ' : ' + r.message : ''}</div>`;
+                const likeImg = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAeUlEQVR4nO3UQQ6AMAhEUe5/aV2YGFMq/GmKCwPpcoa3KnYUjzXQQAMeMJu8aEGStyQaMCxvND0YOP8NANO3oeQbKADE9xOgzpA/2jpQYYzHbiMzv6Z+VpdigBvBggQgRtzOgdhIqwh4M0iPAt6AJQF4GryhAZehzAnZwUYrm3KoHgAAAABJRU5ErkJggg==';
+                const winkImg = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAlUlEQVR4nO3USw6AMAgEUO5/6bpsisDwq9ZE4srgvIBVGpuLTgAIXXkARmPGAELpqiHeTUSrzB0opnPjaaAlfTFoT/o0VICVGIF6FiD6sLPnBwpA10E6BhDrUxP0A74NwH5zAueizbYJqFuC34Gxn8DflGX5huNA4LB6Xq8IdB2n8SZQN3iWVtVoCEQNNQJWMtoPlOoCO+qqxsrxUP8AAAAASUVORK5CYII=';
+                const icon = r.type === 'like' ? likeImg :
+                              r.type === 'wink' ? winkImg : '';
+                const btn = (r.type === 'like' || r.type === 'wink') ?
+                    `<button onclick="sendRequest(${r.senderId}, '${r.type}')">Send ${r.type} back</button>` : '';
+                return `<div class="request-card">` +
+                       (icon ? `<img src="${icon}" class="request-icon" alt="${r.type}">` : '') +
+                       `<div class="request-details"><strong>${name}</strong> sent a <em>${r.type}</em>${r.message ? ' : ' + r.message : ''}</div>` +
+                       `<div class="request-actions">${btn}</div>` +
+                       `</div>`;
             }));
             list.innerHTML = items.join('');
         }
