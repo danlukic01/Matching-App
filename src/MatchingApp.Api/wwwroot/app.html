@@ -219,6 +219,43 @@
             display: none;
         }
 
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .popup-overlay.hidden {
+            display: none;
+        }
+
+        .popup {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            max-width: 320px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(80,99,167,0.2);
+            border: 1px solid #eef2fb;
+        }
+
+        .popup-buttons {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .popup-buttons button {
+            margin: 0 .4rem;
+        }
+
 
         .match-actions {
             margin-top: .6rem;
@@ -428,6 +465,16 @@
             <button id="requests-back-btn" style="margin-top:1.3rem;">Back to Profile</button>
         </section>
     </main>
+    <div id="popup-overlay" class="popup-overlay hidden">
+        <div class="popup">
+            <div id="popup-message"></div>
+            <input id="popup-input" class="hidden" style="margin-top:.5rem;width:100%;" />
+            <div class="popup-buttons">
+                <button id="popup-ok-btn">OK</button>
+                <button id="popup-cancel-btn" class="hidden">Cancel</button>
+            </div>
+        </div>
+    </div>
     <script>
         const apiClients = '/api/clients';
         const apiMatches = '/api/matches';
@@ -435,6 +482,59 @@
         const apiRequests = '/api/contactrequests';
         let currentClient = null;
         let authToken = localStorage.getItem('authToken');
+
+        const popupOverlay = document.getElementById('popup-overlay');
+        const popupMessage = document.getElementById('popup-message');
+        const popupInput = document.getElementById('popup-input');
+        const popupOk = document.getElementById('popup-ok-btn');
+        const popupCancel = document.getElementById('popup-cancel-btn');
+        let popupResolver = null;
+
+        function showPopup(message, options = {}) {
+            popupMessage.textContent = message;
+            if (options.input) {
+                popupInput.classList.remove('hidden');
+                popupInput.value = '';
+            } else {
+                popupInput.classList.add('hidden');
+            }
+            if (options.confirm) {
+                popupCancel.classList.remove('hidden');
+            } else {
+                popupCancel.classList.add('hidden');
+            }
+            popupOverlay.classList.remove('hidden');
+            return new Promise(res => {
+                popupResolver = res;
+            });
+        }
+
+        popupOk.addEventListener('click', () => {
+            popupOverlay.classList.add('hidden');
+            if (popupResolver) {
+                const val = popupInput.classList.contains('hidden') ? true : popupInput.value;
+                popupResolver(val);
+            }
+        });
+
+        popupCancel.addEventListener('click', () => {
+            popupOverlay.classList.add('hidden');
+            if (popupResolver) {
+                popupResolver(null);
+            }
+        });
+
+        function showAlert(msg) {
+            return showPopup(msg);
+        }
+
+        function showConfirm(msg) {
+            return showPopup(msg, { confirm: true });
+        }
+
+        function showPrompt(msg) {
+            return showPopup(msg, { input: true, confirm: true });
+        }
 
         function showLanding() {
             document.getElementById('landing-section').style.display = 'block';
@@ -595,7 +695,7 @@
                 currentClient = await fetch(`${apiClients}/${data.clientId}`, { headers: { 'X-Auth-Token': authToken } }).then(r => r.json());
                 showProfileSummary();
             } else {
-                alert('Invalid credentials');
+                showAlert('Invalid credentials');
             }
         });
 
@@ -611,7 +711,7 @@
         });
 
         document.getElementById('delete-btn').addEventListener('click', async () => {
-            if (!confirm('Delete your profile?')) return;
+            if (!(await showConfirm('Delete your profile?'))) return;
             await fetch(`${apiClients}/${currentClient.id}`, {
                 method: 'DELETE',
                 headers: { 'X-Auth-Token': authToken }
@@ -652,7 +752,7 @@
             if (res.status === 401) {
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('clientId');
-                alert('Session expired. Please log in again.');
+                showAlert('Session expired. Please log in again.');
                 showLanding();
                 return;
             }
@@ -780,23 +880,23 @@
                 body: JSON.stringify(body)
             });
             if (res.ok) {
-                alert('Request sent');
+                showAlert('Request sent');
                 if (type === 'like' || type === 'wink') {
                     loadMyMatches();
                 }
             } else if (res.status === 403) {
                 if (type === 'message') {
-                    alert('You can only message users you have matched with.');
+                    showAlert('You can only message users you have matched with.');
                 } else {
-                    alert('You can only contact top matches.');
+                    showAlert('You can only contact top matches.');
                 }
             } else {
-                alert('Failed to send request');
+                showAlert('Failed to send request');
             }
         }
 
-        function sendMessageRequest(id) {
-            const msg = prompt('Enter your message');
+        async function sendMessageRequest(id) {
+            const msg = await showPrompt('Enter your message');
             if (msg !== null) {
                 sendRequest(id, 'message', msg);
             }
