@@ -555,7 +555,7 @@
             if (id && authToken) {
                 const val = await fetch(`${apiAuth}/validate`, { headers: { 'X-Auth-Token': authToken } });
                 if (val.ok) {
-                    const res = await fetch(`${apiClients}/${id}`);
+                    const res = await fetch(`${apiClients}/${id}`, { headers: { 'X-Auth-Token': authToken } });
                     if (res.ok) {
                         currentClient = await res.json();
                         showProfileSummary();

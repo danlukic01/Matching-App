@@ -16,17 +16,30 @@ namespace MatchingApp.Api.Controllers
         private readonly AppDbContext _context;
         private readonly NatalChartService _natalService;
         private readonly IWebHostEnvironment _env;
+        private readonly AuthService _authService;
 
-        public ClientsController(AppDbContext context, NatalChartService natalService, IWebHostEnvironment env)
+        public ClientsController(AppDbContext context, NatalChartService natalService, IWebHostEnvironment env, AuthService authService)
         {
             _context = context;
             _natalService = natalService;
             _env = env;
+            _authService = authService;
+        }
+
+        private int? GetAuthenticatedClientId()
+        {
+            var token = Request.Headers["X-Auth-Token"].FirstOrDefault();
+            return _authService.GetClientId(token);
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Client>> GetClient(int id)
         {
+            if (GetAuthenticatedClientId() == null)
+            {
+                return Unauthorized();
+            }
+
             var client = await _context.Clients.Include(c => c.NatalChart).FirstOrDefaultAsync(c => c.Id == id);
             if (client == null)
             {
