@@ -884,6 +884,12 @@
                 if (type === 'like' || type === 'wink') {
                     loadMyMatches();
                 }
+            } else if (res.status === 401) {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('clientId');
+                currentClient = null;
+                showLanding();
+                showLoginError('Session expired. Please log in again.');
             } else if (res.status === 403) {
                 if (type === 'message') {
                     showAlert('You can only message users you have matched with.');
