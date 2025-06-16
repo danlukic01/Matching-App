@@ -194,6 +194,15 @@
             transition: width .5s;
         }
 
+        .match-actions {
+            margin-top: .6rem;
+        }
+
+            .match-actions button {
+                margin-right: .4rem;
+                margin-top: .2rem;
+            }
+
         /* -- Profile summary and other sections -- */
         .profile-summary-name {
             font-weight: 700;
@@ -314,6 +323,7 @@
             <div style="text-align:center;">
                 <button id="edit-btn">Edit Profile</button>
                 <button id="find-btn">Find Matches</button>
+                <button id="requests-btn">View Requests</button>
             </div>
         </section>
 
@@ -329,11 +339,18 @@
             <div id="matches-list" class="matches-list"></div>
             <button id="back-btn" style="margin-top:1.3rem;">Back to Profile</button>
         </section>
+
+        <section id="requests-section" style="display:none;">
+            <h2 class="matches-title">Contact Requests</h2>
+            <div id="requests-list" class="matches-list"></div>
+            <button id="requests-back-btn" style="margin-top:1.3rem;">Back to Profile</button>
+        </section>
     </main>
     <script>
         const apiClients = '/api/clients';
         const apiMatches = '/api/matches';
         const apiAuth = '/api/auth';
+        const apiRequests = '/api/contactrequests';
         let currentClient = null;
         let authToken = localStorage.getItem('authToken');
 
@@ -342,6 +359,7 @@
             document.getElementById('profile-form-section').style.display = 'none';
             document.getElementById('profile-summary').style.display = 'none';
             document.getElementById('matches-section').style.display = 'none';
+            document.getElementById('requests-section').style.display = 'none';
         }
 
         async function loadProfile() {
@@ -365,6 +383,7 @@
             document.getElementById('profile-form-section').style.display = 'block';
             document.getElementById('profile-summary').style.display = 'none';
             document.getElementById('matches-section').style.display = 'none';
+            document.getElementById('requests-section').style.display = 'none';
         }
 
         function showProfileSummary() {
@@ -379,6 +398,7 @@
             document.getElementById('profile-form-section').style.display = 'none';
             document.getElementById('profile-summary').style.display = 'block';
             document.getElementById('matches-section').style.display = 'none';
+            document.getElementById('requests-section').style.display = 'none';
         }
 
         document.getElementById('profile-form').addEventListener('submit', async (e) => {
@@ -449,6 +469,15 @@
             loadMatches();
         });
 
+        document.getElementById('requests-btn').addEventListener('click', () => {
+            showRequestsSection();
+            loadRequests();
+        });
+
+        document.getElementById('requests-back-btn').addEventListener('click', () => {
+            showProfileSummary();
+        });
+
         document.getElementById('back-btn').addEventListener('click', () => {
             showProfileSummary();
         });
@@ -493,9 +522,67 @@
                                     <div class="score-bar-fill" style="width:${m.score.toFixed(1)}%"></div>
                                 </div>
                             </div>
+                            <div class="match-actions">
+                                <button onclick="sendRequest(${m.client.id}, 'like')">Like</button>
+                                <button onclick="sendRequest(${m.client.id}, 'wink')">Wink</button>
+                                <button onclick="sendMessageRequest(${m.client.id})">Message</button>
+                            </div>
                         </div>
                     </div>`
             ).join('');
+        }
+
+        function showRequestsSection() {
+            document.getElementById('landing-section').style.display = 'none';
+            document.getElementById('profile-form-section').style.display = 'none';
+            document.getElementById('profile-summary').style.display = 'none';
+            document.getElementById('matches-section').style.display = 'none';
+            document.getElementById('requests-section').style.display = 'block';
+        }
+
+        async function sendRequest(receiverId, type, message = null) {
+            const body = { receiverId, type };
+            if (message) body.message = message;
+            const res = await fetch(apiRequests, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
+                body: JSON.stringify(body)
+            });
+            if (res.ok) {
+                alert('Request sent');
+            } else if (res.status === 403) {
+                alert('You can only contact top or mutual matches.');
+            } else {
+                alert('Failed to send request');
+            }
+        }
+
+        function sendMessageRequest(id) {
+            const msg = prompt('Enter your message');
+            if (msg !== null) {
+                sendRequest(id, 'message', msg);
+            }
+        }
+
+        async function loadRequests() {
+            const res = await fetch(apiRequests, { headers: { 'X-Auth-Token': authToken } });
+            const list = document.getElementById('requests-list');
+            if (!res.ok) {
+                list.innerHTML = `<p style="text-align:center;">Failed to load requests (status ${res.status}).</p>`;
+                return;
+            }
+            const data = await res.json();
+            if (data.length === 0) {
+                list.innerHTML = '<p style="text-align:center;">No contact requests.</p>';
+                return;
+            }
+            const items = await Promise.all(data.map(async r => {
+                const sr = await fetch(`${apiClients}/${r.senderId}`, { headers: { 'X-Auth-Token': authToken } });
+                let name = r.senderId;
+                if (sr.ok) { const cd = await sr.json(); name = cd.name; }
+                return `<div class="card"><strong>${name}</strong> sent a <em>${r.type}</em>${r.message ? ' : ' + r.message : ''}</div>`;
+            }));
+            list.innerHTML = items.join('');
         }
 
         loadProfile();
