@@ -208,6 +208,17 @@
             font-size: .95rem;
         }
 
+
+        .details-btn {
+            margin-top: .5rem;
+            font-size: .9rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+
         .match-actions {
             margin-top: .6rem;
         }
@@ -662,6 +673,9 @@
                 const details = m.breakdown.map(d =>
                     `<li>${d.planet}: ${d.signA ?? '?'} vs ${d.signB ?? '?'}${d.match ? ' ✓' : ''}</li>`
                 ).join('');
+
+                const detailsId = `details-${m.client.id}`;
+
                 return `<div class="match-card">
                         <div class="match-avatar">${m.client.name.charAt(0)}</div>
                         <div class="match-details">
@@ -672,8 +686,16 @@
                                     <div class="score-bar-fill" style="width:${m.score.toFixed(1)}%"></div>
                                 </div>
                             </div>
+
+                            <button class="details-btn" onclick="toggleDetails('${detailsId}', this)">Show Details</button>
+                            <div id="${detailsId}" class="hidden">
+                                <div class="match-stars">${stars}</div>
+                                <ul class="breakdown-list">${details}</ul>
+                            </div>
+
                             <div class="match-stars">${stars}</div>
                             <ul class="breakdown-list">${details}</ul>
+
                             <div class="match-actions">
                                 <button onclick="sendRequest(${m.client.id}, 'like')">Like</button>
                                 <button onclick="sendRequest(${m.client.id}, 'wink')">Wink</button>
@@ -682,6 +704,20 @@
                         </div>
                     </div>`;
             }).join('');
+
+        }
+
+        function toggleDetails(id, btn) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                btn.textContent = 'Hide Details';
+            } else {
+                el.classList.add('hidden');
+                btn.textContent = 'Show Details';
+            }
+
         }
 
         async function loadMyMatches() {
