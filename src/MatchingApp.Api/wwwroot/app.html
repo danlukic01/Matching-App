@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
+        /* ... your style unchanged ... */
         * {
             box-sizing: border-box;
         }
@@ -102,7 +103,6 @@
                 box-shadow: 0 4px 16px rgba(80,99,167,0.19);
             }
 
-        /* === MATCHES CARDS UPGRADE === */
         .matches-title {
             color: #4957b8;
             text-align: center;
@@ -209,7 +209,6 @@
             font-size: .95rem;
         }
 
-
         .details-btn {
             margin-top: .5rem;
             font-size: .9rem;
@@ -248,21 +247,19 @@
             text-align: center;
         }
 
-        .popup-buttons button {
-            margin: 0 .4rem;
-        }
-
+            .popup-buttons button {
+                margin: 0 .4rem;
+            }
 
         .match-actions {
             margin-top: .6rem;
         }
 
-        .match-actions button {
-            margin-right: .4rem;
-            margin-top: .2rem;
-        }
+            .match-actions button {
+                margin-right: .4rem;
+                margin-top: .2rem;
+            }
 
-        /* === CONTACT REQUEST CARDS === */
         .request-card {
             display: flex;
             align-items: center;
@@ -288,7 +285,6 @@
                 margin-left: .4rem;
             }
 
-        /* -- Profile summary and other sections -- */
         .profile-summary-name {
             font-weight: 700;
             font-size: 1.18rem;
@@ -323,6 +319,14 @@
                 height: 64px;
             }
         }
+        /* Inline login error styling */
+        #login-error {
+            color: #d63c3c;
+            margin-bottom: 1em;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -336,6 +340,7 @@
                 Welcome to Destina!
             </p>
             <form id="login-form">
+                <div id="login-error"></div> <!-- This line shows login/session errors -->
                 <label>
                     Email:
                     <input type="email" id="login-email" required autocomplete="email">
@@ -472,13 +477,13 @@
         </div>
     </div>
     <script>
+        // --- Your API variables, popup code, and helpers unchanged ---
         const apiClients = '/api/clients';
         const apiMatches = '/api/matches';
         const apiAuth = '/api/auth';
         const apiRequests = '/api/contactrequests';
         let currentClient = null;
         let authToken = localStorage.getItem('authToken');
-
         const popupOverlay = document.getElementById('popup-overlay');
         const popupMessage = document.getElementById('popup-message');
         const popupInput = document.getElementById('popup-input');
@@ -504,7 +509,6 @@
                 popupResolver = res;
             });
         }
-
         popupOk.addEventListener('click', () => {
             popupOverlay.classList.add('hidden');
             if (popupResolver) {
@@ -512,33 +516,37 @@
                 popupResolver(val);
             }
         });
-
         popupCancel.addEventListener('click', () => {
             popupOverlay.classList.add('hidden');
             if (popupResolver) {
                 popupResolver(null);
             }
         });
+        function showAlert(msg) { return showPopup(msg); }
+        function showConfirm(msg) { return showPopup(msg, { confirm: true }); }
+        function showPrompt(msg) { return showPopup(msg, { input: true, confirm: true }); }
 
-        function showAlert(msg) {
-            return showPopup(msg);
-        }
-
-        function showConfirm(msg) {
-            return showPopup(msg, { confirm: true });
-        }
-
-        function showPrompt(msg) {
-            return showPopup(msg, { input: true, confirm: true });
+        // --- INLINE LOGIN ERROR MESSAGE ---
+        function showLoginError(msg) {
+            const errDiv = document.getElementById('login-error');
+            if (msg) {
+                errDiv.textContent = msg;
+                errDiv.style.display = 'block';
+            } else {
+                errDiv.textContent = '';
+                errDiv.style.display = 'none';
+            }
         }
 
         function showLanding() {
+            popupOverlay.classList.add('hidden'); // Hide popup just in case
             document.getElementById('landing-section').style.display = 'block';
             document.getElementById('profile-form-section').style.display = 'none';
             document.getElementById('profile-summary').style.display = 'none';
             document.getElementById('matches-section').style.display = 'none';
             document.getElementById('my-matches-section').style.display = 'none';
             document.getElementById('requests-section').style.display = 'none';
+            showLoginError('');
         }
 
         async function loadProfile() {
@@ -556,6 +564,8 @@
             }
             showLanding();
         }
+
+
 
         function showProfileForm(edit = false) {
             document.getElementById('landing-section').style.display = 'none';
@@ -674,6 +684,7 @@
 
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            showLoginError(''); // clear previous
             const creds = {
                 email: document.getElementById('login-email').value,
                 password: document.getElementById('login-password').value
@@ -690,8 +701,9 @@
                 localStorage.setItem('clientId', data.clientId);
                 currentClient = await fetch(`${apiClients}/${data.clientId}`, { headers: { 'X-Auth-Token': authToken } }).then(r => r.json());
                 showProfileSummary();
+                showLoginError('');
             } else {
-                showAlert('Invalid credentials');
+                showLoginError('Invalid email or password.');
             }
         });
 
@@ -737,42 +749,37 @@
 
         document.getElementById('top-select').addEventListener('change', loadMatches);
 
+        // --- session expired: show inline error not popup ---
         async function loadMatches() {
             const top = document.getElementById('top-select').value;
             const res = await fetch(`${apiMatches}/recommendations/${currentClient.id}?top=${top}`, {
                 headers: { 'X-Auth-Token': authToken }
             });
-
             const list = document.getElementById('matches-list');
-
-            if (res.status === 401) {
+            if(res.status === 401) {
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('clientId');
-                showAlert('Session expired. Please log in again.');
                 showLanding();
+                showLoginError('Session expired. Please log in again.');
                 return;
             }
-
             if (!res.ok) {
                 list.innerHTML = `<p style="text-align:center;">Failed to load matches (status ${res.status}).</p>`;
                 return;
             }
-
             const data = await res.json();
             if (data.length === 0) {
                 list.innerHTML = '<p style="text-align:center;">No matches found.</p>';
                 return;
             }
-
+            // ... render matches unchanged ...
             list.innerHTML = data.map(m => {
                 const full = Math.round(m.starRating);
                 const stars = '★'.repeat(full) + '☆'.repeat(5 - full);
                 const details = m.breakdown.map(d =>
                     `<li>${d.planet}: ${d.signA ?? '?'} vs ${d.signB ?? '?'}${d.match ? ' ✓' : ''}</li>`
                 ).join('');
-
                 const detailsId = `details-${m.client.id}`;
-
                 return `<div class="match-card">
                         <div class="match-avatar">${m.client.name.charAt(0)}</div>
                         <div class="match-details">
@@ -783,13 +790,11 @@
                                     <div class="score-bar-fill" style="width:${m.score.toFixed(1)}%"></div>
                                 </div>
                             </div>
-
                             <button class="details-btn" onclick="toggleDetails('${detailsId}', this)">Show Details</button>
                             <div id="${detailsId}" class="hidden">
                                 <div class="match-stars">${stars}</div>
                                 <ul class="breakdown-list">${details}</ul>
                             </div>
-
                             <div class="match-actions">
                                 <button onclick="sendRequest(${m.client.id}, 'like')">Like</button>
                                 <button onclick="sendRequest(${m.client.id}, 'wink')">Wink</button>
@@ -797,7 +802,6 @@
                         </div>
                     </div>`;
             }).join('');
-
         }
 
         function toggleDetails(id, btn) {
@@ -833,18 +837,18 @@
                 if (!cr.ok) return '';
                 const other = await cr.json();
                 return `<div class="match-card">
-                            <div class="match-avatar">${other.name.charAt(0)}</div>
-                            <div class="match-details">
-                                <div class="match-name">${other.name}</div>
-                                <div class="match-score-bar">
-                                    <span class="match-score-value">Score: ${m.score.toFixed(1)}%</span>
-                                    <div class="score-bar-bg"><div class="score-bar-fill" style="width:${m.score.toFixed(1)}%"></div></div>
-                                </div>
-                                <div class="match-actions">
-                                    <button onclick="sendMessageRequest(${other.id})">Message</button>
-                                </div>
-                            </div>
-                        </div>`;
+                                    <div class="match-avatar">${other.name.charAt(0)}</div>
+                                    <div class="match-details">
+                                        <div class="match-name">${other.name}</div>
+                                        <div class="match-score-bar">
+                                            <span class="match-score-value">Score: ${m.score.toFixed(1)}%</span>
+                                            <div class="score-bar-bg"><div class="score-bar-fill" style="width:${m.score.toFixed(1)}%"></div></div>
+                                        </div>
+                                        <div class="match-actions">
+                                            <button onclick="sendMessageRequest(${other.id})">Message</button>
+                                        </div>
+                                    </div>
+                                </div>`;
             }));
             list.innerHTML = items.join('');
         }
@@ -917,14 +921,14 @@
                 const likeImg = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAeUlEQVR4nO3UQQ6AMAhEUe5/aV2YGFMq/GmKCwPpcoa3KnYUjzXQQAMeMJu8aEGStyQaMCxvND0YOP8NANO3oeQbKADE9xOgzpA/2jpQYYzHbiMzv6Z+VpdigBvBggQgRtzOgdhIqwh4M0iPAt6AJQF4GryhAZehzAnZwUYrm3KoHgAAAABJRU5ErkJggg==';
                 const winkImg = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAlUlEQVR4nO3USw6AMAgEUO5/6bpsisDwq9ZE4srgvIBVGpuLTgAIXXkARmPGAELpqiHeTUSrzB0opnPjaaAlfTFoT/o0VICVGIF6FiD6sLPnBwpA10E6BhDrUxP0A74NwH5zAueizbYJqFuC34Gxn8DflGX5huNA4LB6Xq8IdB2n8SZQN3iWVtVoCEQNNQJWMtoPlOoCO+qqxsrxUP8AAAAASUVORK5CYII=';
                 const icon = r.type === 'like' ? likeImg :
-                              r.type === 'wink' ? winkImg : '';
+                    r.type === 'wink' ? winkImg : '';
                 const btn = (r.type === 'like' || r.type === 'wink') ?
                     `<button onclick="sendRequest(${r.senderId}, '${r.type}')">Send ${r.type} back</button>` : '';
                 return `<div class="request-card">` +
-                       (icon ? `<img src="${icon}" class="request-icon" alt="${r.type}">` : '') +
-                       `<div class="request-details"><strong>${name}</strong> sent a <em>${r.type}</em>${r.message ? ' : ' + r.message : ''}</div>` +
-                       `<div class="request-actions">${btn}</div>` +
-                       `</div>`;
+                    (icon ? `<img src="${icon}" class="request-icon" alt="${r.type}">` : '') +
+                    `<div class="request-details"><strong>${name}</strong> sent a <em>${r.type}</em>${r.message ? ' : ' + r.message : ''}</div>` +
+                    `<div class="request-actions">${btn}</div>` +
+                    `</div>`;
             }));
             list.innerHTML = items.join('');
         }
