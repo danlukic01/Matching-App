@@ -5,7 +5,6 @@ using MatchingApp.Api.Models;
 using MatchingApp.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace MatchingApp.Api.Controllers
 {
@@ -100,18 +99,6 @@ namespace MatchingApp.Api.Controllers
 
             var token = _authService.CreateSession(client.Id);
             return Ok(new { token, clientId = client.Id });
-        }
-
-        [HttpGet("validate")]
-        public IActionResult Validate()
-        {
-            var token = Request.Headers["X-Auth-Token"].FirstOrDefault();
-            var id = _authService.GetClientId(token);
-            if (id == null)
-            {
-                return Unauthorized();
-            }
-            return Ok(new { clientId = id.Value });
         }
     }
 }
