@@ -10,13 +10,13 @@ namespace MatchingApp.Api.Controllers
 {
     [ApiController]
     [Route("api/auth")]
-    public class ClientProfileUpdateDto : ControllerBase
+    public class AuthController : ControllerBase
     {
         private readonly AppDbContext _context;
         private readonly NatalChartService _natalService;
         private readonly AuthService _authService;
 
-        public ClientProfileUpdateDto(AppDbContext context, NatalChartService natalService, AuthService authService)
+        public AuthController(AppDbContext context, NatalChartService natalService, AuthService authService)
         {
             _context = context;
             _natalService = natalService;
