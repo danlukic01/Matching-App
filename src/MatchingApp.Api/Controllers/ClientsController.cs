@@ -5,11 +5,7 @@ using MatchingApp.Api.Models;
 using MatchingApp.Api.Services;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
-
 using System.Collections.Generic;
-
-
-
 
 namespace MatchingApp.Api.Controllers
 {
@@ -60,8 +56,9 @@ namespace MatchingApp.Api.Controllers
             return clients;
         }
 
+        // --- UPDATED PUT METHOD USING DTO ---
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateClient(int id, Client updated)
+        public async Task<IActionResult> UpdateClient(int id, [FromBody] ClientProfileUpdateDto updated)
         {
             if (id != updated.Id)
             {
