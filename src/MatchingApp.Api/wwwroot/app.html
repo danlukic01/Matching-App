@@ -885,11 +885,14 @@
                     loadMyMatches();
                 }
             } else if (res.status === 401) {
+                // Hide any active popup and return user to the login screen
+                popupOverlay.classList.add('hidden');
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('clientId');
                 currentClient = null;
                 showLanding();
                 showLoginError('Session expired. Please log in again.');
+                return;
             } else if (res.status === 403) {
                 if (type === 'message') {
                     showAlert('You can only message users you have matched with.');
