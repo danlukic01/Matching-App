@@ -36,6 +36,22 @@ namespace MatchingApp.Api.Controllers
             return await _context.Matches.ToListAsync();
         }
 
+        [HttpGet("for/{clientId}")]
+        public async Task<ActionResult<IEnumerable<Match>>> GetMatchesFor(int clientId)
+        {
+            var authId = GetAuthenticatedClientId();
+            if (authId == null || authId != clientId)
+            {
+                return Unauthorized();
+            }
+
+            var matches = await _context.Matches
+                .Where(m => m.ClientAId == clientId || m.ClientBId == clientId)
+                .ToListAsync();
+
+            return matches;
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Match>> GetMatch(int id)
         {

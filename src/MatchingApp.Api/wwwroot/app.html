@@ -323,6 +323,7 @@
             <div style="text-align:center;">
                 <button id="edit-btn">Edit Profile</button>
                 <button id="find-btn">Find Matches</button>
+                <button id="my-matches-btn">My Matches</button>
                 <button id="requests-btn">View Requests</button>
             </div>
         </section>
@@ -338,6 +339,12 @@
             </label>
             <div id="matches-list" class="matches-list"></div>
             <button id="back-btn" style="margin-top:1.3rem;">Back to Profile</button>
+        </section>
+
+        <section id="my-matches-section" style="display:none;">
+            <h2 class="matches-title">My Matches</h2>
+            <div id="my-matches-list" class="matches-list"></div>
+            <button id="my-matches-back-btn" style="margin-top:1.3rem;">Back to Profile</button>
         </section>
 
         <section id="requests-section" style="display:none;">
@@ -359,6 +366,7 @@
             document.getElementById('profile-form-section').style.display = 'none';
             document.getElementById('profile-summary').style.display = 'none';
             document.getElementById('matches-section').style.display = 'none';
+            document.getElementById('my-matches-section').style.display = 'none';
             document.getElementById('requests-section').style.display = 'none';
         }
 
@@ -384,6 +392,7 @@
             document.getElementById('profile-summary').style.display = 'none';
             document.getElementById('matches-section').style.display = 'none';
             document.getElementById('requests-section').style.display = 'none';
+            document.getElementById('my-matches-section').style.display = 'none';
         }
 
         function showProfileSummary() {
@@ -399,6 +408,7 @@
             document.getElementById('profile-summary').style.display = 'block';
             document.getElementById('matches-section').style.display = 'none';
             document.getElementById('requests-section').style.display = 'none';
+            document.getElementById('my-matches-section').style.display = 'none';
         }
 
         document.getElementById('profile-form').addEventListener('submit', async (e) => {
@@ -474,7 +484,16 @@
             loadRequests();
         });
 
+        document.getElementById('my-matches-btn').addEventListener('click', () => {
+            showMyMatchesSection();
+            loadMyMatches();
+        });
+
         document.getElementById('requests-back-btn').addEventListener('click', () => {
+            showProfileSummary();
+        });
+
+        document.getElementById('my-matches-back-btn').addEventListener('click', () => {
             showProfileSummary();
         });
 
@@ -532,12 +551,58 @@
             ).join('');
         }
 
+        async function loadMyMatches() {
+            const res = await fetch(`${apiMatches}/for/${currentClient.id}`, {
+                headers: { 'X-Auth-Token': authToken }
+            });
+            const list = document.getElementById('my-matches-list');
+            if (!res.ok) {
+                list.innerHTML = `<p style="text-align:center;">Failed to load matches (status ${res.status}).</p>`;
+                return;
+            }
+            const data = await res.json();
+            if (data.length === 0) {
+                list.innerHTML = '<p style="text-align:center;">No matches yet.</p>';
+                return;
+            }
+            const items = await Promise.all(data.map(async m => {
+                const otherId = m.clientAId === currentClient.id ? m.clientBId : m.clientAId;
+                const cr = await fetch(`${apiClients}/${otherId}`, { headers: { 'X-Auth-Token': authToken } });
+                if (!cr.ok) return '';
+                const other = await cr.json();
+                return `<div class="match-card">
+                            <div class="match-avatar">${other.name.charAt(0)}</div>
+                            <div class="match-details">
+                                <div class="match-name">${other.name}</div>
+                                <div class="match-score-bar">
+                                    <span class="match-score-value">Score: ${m.score.toFixed(1)}%</span>
+                                    <div class="score-bar-bg"><div class="score-bar-fill" style="width:${m.score.toFixed(1)}%"></div></div>
+                                </div>
+                                <div class="match-actions">
+                                    <button onclick="sendMessageRequest(${other.id})">Message</button>
+                                </div>
+                            </div>
+                        </div>`;
+            }));
+            list.innerHTML = items.join('');
+        }
+
         function showRequestsSection() {
             document.getElementById('landing-section').style.display = 'none';
             document.getElementById('profile-form-section').style.display = 'none';
             document.getElementById('profile-summary').style.display = 'none';
             document.getElementById('matches-section').style.display = 'none';
+            document.getElementById('my-matches-section').style.display = 'none';
             document.getElementById('requests-section').style.display = 'block';
+        }
+
+        function showMyMatchesSection() {
+            document.getElementById('landing-section').style.display = 'none';
+            document.getElementById('profile-form-section').style.display = 'none';
+            document.getElementById('profile-summary').style.display = 'none';
+            document.getElementById('matches-section').style.display = 'none';
+            document.getElementById('requests-section').style.display = 'none';
+            document.getElementById('my-matches-section').style.display = 'block';
         }
 
         async function sendRequest(receiverId, type, message = null) {
@@ -550,8 +615,15 @@
             });
             if (res.ok) {
                 alert('Request sent');
+                if (type === 'like' || type === 'wink') {
+                    loadMyMatches();
+                }
             } else if (res.status === 403) {
-                alert('You can only contact top or mutual matches.');
+                if (type === 'message') {
+                    alert('You can only message users you have matched with.');
+                } else {
+                    alert('You can only contact top matches.');
+                }
             } else {
                 alert('Failed to send request');
             }
