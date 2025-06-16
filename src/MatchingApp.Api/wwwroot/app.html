@@ -23,7 +23,8 @@
             color: #333;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            align-items: center;
+            padding-top: 1rem;
         }
 
         main {
@@ -696,7 +697,6 @@
                             <div class="match-actions">
                                 <button onclick="sendRequest(${m.client.id}, 'like')">Like</button>
                                 <button onclick="sendRequest(${m.client.id}, 'wink')">Wink</button>
-                                <button onclick="sendMessageRequest(${m.client.id})">Message</button>
                             </div>
                         </div>
                     </div>`;
