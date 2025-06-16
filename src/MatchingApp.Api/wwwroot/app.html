@@ -553,14 +553,18 @@
             const id = localStorage.getItem('clientId');
             authToken = localStorage.getItem('authToken');
             if (id && authToken) {
-                const res = await fetch(`${apiClients}/${id}`, { headers: { 'X-Auth-Token': authToken } });
-                if (res.ok) {
-                    currentClient = await res.json();
-                    showProfileSummary();
-                    return;
+                const val = await fetch(`${apiAuth}/validate`, { headers: { 'X-Auth-Token': authToken } });
+                if (val.ok) {
+                    const res = await fetch(`${apiClients}/${id}`);
+                    if (res.ok) {
+                        currentClient = await res.json();
+                        showProfileSummary();
+                        return;
+                    }
                 }
                 localStorage.removeItem('clientId');
                 localStorage.removeItem('authToken');
+                showLoginError('Session expired. Please log in again.');
             }
             showLanding();
         }
