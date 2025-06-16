@@ -87,46 +87,57 @@ namespace MatchingApp.Api.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            bool allowed = await _context.Matches.AnyAsync(m =>
+            bool alreadyMatched = await _context.Matches.AnyAsync(m =>
                 (m.ClientAId == senderId && m.ClientBId == request.ReceiverId) ||
                 (m.ClientAId == request.ReceiverId && m.ClientBId == senderId));
 
-            if (!allowed)
+            if (request.Type == "message")
             {
-                // check top 5 recommendations
-                var others = await _context.Clients
-                    .Include(c => c.NatalChart)
-                    .Where(c => c.Id != senderId && c.Name != sender.Name)
-                    .Where(c => string.IsNullOrEmpty(sender.PreferredGender) || c.Gender == sender.PreferredGender)
-                    .Where(c => string.IsNullOrEmpty(c.PreferredGender) || c.PreferredGender == sender.Gender)
-                    .ToListAsync();
-
-                foreach (var other in others.Where(o => o.NatalChart == null))
+                if (!alreadyMatched)
                 {
-                    other.NatalChart = _natalService.Calculate(other);
+                    return Forbid();
                 }
-
-                if (_context.ChangeTracker.HasChanges())
-                {
-                    await _context.SaveChangesAsync();
-                }
-
-                var topIds = others.Select(o => new
-                {
-                    Id = o.Id,
-                    Score = _matchService.CalculateCompatibility(sender.NatalChart, o.NatalChart)
-                })
-                .OrderByDescending(o => o.Score)
-                .Take(5)
-                .Select(o => o.Id)
-                .ToList();
-
-                allowed = topIds.Contains(request.ReceiverId);
             }
-
-            if (!allowed)
+            else
             {
-                return Forbid();
+                bool allowed = alreadyMatched;
+                if (!allowed)
+                {
+                    // check top 5 recommendations
+                    var others = await _context.Clients
+                        .Include(c => c.NatalChart)
+                        .Where(c => c.Id != senderId && c.Name != sender.Name)
+                        .Where(c => string.IsNullOrEmpty(sender.PreferredGender) || c.Gender == sender.PreferredGender)
+                        .Where(c => string.IsNullOrEmpty(c.PreferredGender) || c.PreferredGender == sender.Gender)
+                        .ToListAsync();
+
+                    foreach (var other in others.Where(o => o.NatalChart == null))
+                    {
+                        other.NatalChart = _natalService.Calculate(other);
+                    }
+
+                    if (_context.ChangeTracker.HasChanges())
+                    {
+                        await _context.SaveChangesAsync();
+                    }
+
+                    var topIds = others.Select(o => new
+                    {
+                        Id = o.Id,
+                        Score = _matchService.CalculateCompatibility(sender.NatalChart, o.NatalChart)
+                    })
+                    .OrderByDescending(o => o.Score)
+                    .Take(5)
+                    .Select(o => o.Id)
+                    .ToList();
+
+                    allowed = topIds.Contains(request.ReceiverId);
+                }
+
+                if (!allowed)
+                {
+                    return Forbid();
+                }
             }
 
             var cr = new ContactRequest
@@ -139,6 +150,27 @@ namespace MatchingApp.Api.Controllers
             };
 
             _context.ContactRequests.Add(cr);
+
+            if (request.Type == "like" || request.Type == "wink")
+            {
+                bool reciprocal = await _context.ContactRequests.AnyAsync(r =>
+                    r.SenderId == request.ReceiverId &&
+                    r.ReceiverId == senderId &&
+                    (r.Type == "like" || r.Type == "wink"));
+
+                if (reciprocal && !alreadyMatched)
+                {
+                    var score = _matchService.CalculateCompatibility(sender.NatalChart, receiver.NatalChart);
+                    var match = new Match
+                    {
+                        ClientAId = senderId.Value,
+                        ClientBId = request.ReceiverId,
+                        Score = score
+                    };
+                    _context.Matches.Add(match);
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             return Ok(cr);
