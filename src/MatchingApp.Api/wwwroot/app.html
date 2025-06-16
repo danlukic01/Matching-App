@@ -493,13 +493,15 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body)
                 });
-                if (res.ok) {
-                    const data = await res.json();
-                    authToken = data.token;
-                    localStorage.setItem('authToken', authToken);
-                    localStorage.setItem('clientId', data.clientId);
-                    currentClient = await fetch(`${apiClients}/${data.clientId}`, { headers: { 'X-Auth-Token': authToken } }).then(r => r.json());
+                if (!res.ok) {
+                    alert('Failed to create profile (status ' + res.status + ')');
+                    return;
                 }
+                const data = await res.json();
+                authToken = data.token;
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('clientId', data.clientId);
+                currentClient = await fetch(`${apiClients}/${data.clientId}`, { headers: { 'X-Auth-Token': authToken } }).then(r => r.json());
             } else {
                 body.id = currentClient.id;
                 const res = await fetch(`${apiClients}/${currentClient.id}`, {
@@ -507,19 +509,24 @@
                     headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
                     body: JSON.stringify(body)
                 });
-                if (res.ok || res.status === 204) {
-                    currentClient = await fetch(`${apiClients}/${currentClient.id}`, { headers: { 'X-Auth-Token': authToken } }).then(r => r.json());
+                if (!res.ok && res.status !== 204) {
+                    alert('Failed to save profile (status ' + res.status + ')');
+                    return;
                 }
+                currentClient = await fetch(`${apiClients}/${currentClient.id}`, { headers: { 'X-Auth-Token': authToken } }).then(r => r.json());
             }
 
             const photo = document.getElementById('profilePhoto').files[0];
             if (photo && currentClient) {
                 const formData = new FormData();
                 formData.append('file', photo);
-                await fetch(`${apiClients}/${currentClient.id}/photo`, {
+                const photoRes = await fetch(`${apiClients}/${currentClient.id}/photo`, {
                     method: 'POST',
                     body: formData
                 });
+                if (!photoRes.ok) {
+                    alert('Photo upload failed (status ' + photoRes.status + ')');
+                }
             }
 
             showProfileSummary();

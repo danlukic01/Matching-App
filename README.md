@@ -1,6 +1,6 @@
 # Matching-App
 
-This repository contains a starter ASP.NET Core Web API for a matchmaking application. The API uses Entity Framework Core with SQLite by default.
+This repository contains a starter ASP.NET Core Web API for a matchmaking application. The API uses Entity Framework Core with SQL Server.
 
 ## Building
 
@@ -49,7 +49,7 @@ Pass the returned token in the `X-Auth-Token` header when calling match related 
 
 ## Database Setup
 
-Entity Framework Core migrations are included. The API uses a local SQLite file named `matchingapp.db`. To create or update the database run from the `src/MatchingApp.Api` directory:
+Entity Framework Core migrations are included. To create or update the database run from the `src/MatchingApp.Api` directory:
 
 ```bash
 dotnet ef database update
