@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using MatchingApp.Api.Data;
 using MatchingApp.Api.Models;
 using MatchingApp.Api.Services;
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
 
 using System.Collections.Generic;
 
@@ -17,11 +19,13 @@ namespace MatchingApp.Api.Controllers
     {
         private readonly AppDbContext _context;
         private readonly NatalChartService _natalService;
+        private readonly IWebHostEnvironment _env;
 
-        public ClientsController(AppDbContext context, NatalChartService natalService)
+        public ClientsController(AppDbContext context, NatalChartService natalService, IWebHostEnvironment env)
         {
             _context = context;
             _natalService = natalService;
+            _env = env;
         }
 
         [HttpGet("{id}")]
@@ -76,6 +80,9 @@ namespace MatchingApp.Api.Controllers
             client.BirthLocation = updated.BirthLocation;
             client.Gender = updated.Gender;
             client.PreferredGender = updated.PreferredGender;
+            client.Bio = updated.Bio;
+            client.Interests = updated.Interests;
+            client.IsProfilePublic = updated.IsProfilePublic;
 
             var chart = _natalService.Calculate(client);
 
@@ -116,6 +123,37 @@ namespace MatchingApp.Api.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        [HttpPost("{id}/photo")]
+        public async Task<IActionResult> UploadPhoto(int id, IFormFile file)
+        {
+            var client = await _context.Clients.FindAsync(id);
+            if (client == null)
+            {
+                return NotFound();
+            }
+
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest();
+            }
+
+            var ext = Path.GetExtension(file.FileName);
+            var fileName = $"{Guid.NewGuid()}{ext}";
+            var dir = Path.Combine(_env.WebRootPath, "profile-photos");
+            Directory.CreateDirectory(dir);
+            var path = Path.Combine(dir, fileName);
+            using (var stream = new FileStream(path, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            client.ProfilePhotoFileName = fileName;
+            client.PhotoApproved = false;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { fileName });
         }
 
         [HttpPost]

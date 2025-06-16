@@ -38,6 +38,9 @@ namespace MatchingApp.Api.Controllers
             public string? BirthLocation { get; set; }
             public string? Gender { get; set; }
             public string? PreferredGender { get; set; }
+            public string? Bio { get; set; }
+            public string? Interests { get; set; }
+            public bool IsProfilePublic { get; set; } = true;
             public string Email { get; set; } = string.Empty;
             public string Password { get; set; } = string.Empty;
         }
@@ -58,6 +61,9 @@ namespace MatchingApp.Api.Controllers
                 BirthLocation = request.BirthLocation,
                 Gender = request.Gender,
                 PreferredGender = request.PreferredGender,
+                Bio = request.Bio,
+                Interests = request.Interests,
+                IsProfilePublic = request.IsProfilePublic,
                 Email = request.Email,
                 PasswordHash = HashPassword(request.Password)
             };

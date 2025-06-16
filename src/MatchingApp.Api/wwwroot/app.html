@@ -317,6 +317,22 @@
                     <input type="text" id="birthLocation" required>
                 </label>
                 <label>
+                    Bio:
+                    <textarea id="bio"></textarea>
+                </label>
+                <label>
+                    Interests:
+                    <input type="text" id="interests">
+                </label>
+                <label>
+                    Profile Photo:
+                    <input type="file" id="profilePhoto">
+                </label>
+                <label>
+                    Public Profile:
+                    <input type="checkbox" id="isPublic" checked>
+                </label>
+                <label>
                     Gender:
                     <select id="gender">
                         <option value="Male">Male</option>
@@ -333,7 +349,7 @@
                         <option value="Other">Other</option>
                     </select>
                 </label>
-                <button type="submit">Create My Profile</button>
+                <button type="submit" id="save-profile-btn">Save Profile</button>
             </form>
         </section>
 
@@ -345,12 +361,19 @@
                 <p style="margin:0;">Birth Location: <span id="summary-birthLocation"></span></p>
                 <p style="margin:0;">Gender: <span id="summary-gender"></span></p>
                 <p style="margin:0;">Looking For: <span id="summary-preferredGender"></span></p>
+                <p style="margin:0;" id="summary-bio"></p>
+                <p style="margin:0;" id="summary-interests"></p>
+                <p style="margin:0;">Public Profile: <span id="summary-public"></span></p>
+            </div>
+            <div style="text-align:center;margin-bottom:1rem;">
+                <img id="summary-photo" style="max-width:150px;border-radius:8px;display:none;" />
             </div>
             <div style="text-align:center;">
                 <button id="edit-btn">Edit Profile</button>
                 <button id="find-btn">Find Matches</button>
                 <button id="my-matches-btn">My Matches</button>
                 <button id="requests-btn">View Requests</button>
+                <button id="delete-btn">Delete</button>
             </div>
         </section>
 
@@ -412,13 +435,15 @@
             showLanding();
         }
 
-        function showProfileForm() {
+        function showProfileForm(edit = false) {
             document.getElementById('landing-section').style.display = 'none';
             document.getElementById('profile-form-section').style.display = 'block';
             document.getElementById('profile-summary').style.display = 'none';
             document.getElementById('matches-section').style.display = 'none';
             document.getElementById('requests-section').style.display = 'none';
             document.getElementById('my-matches-section').style.display = 'none';
+            document.getElementById('email').parentElement.style.display = edit ? 'none' : 'block';
+            document.getElementById('password').parentElement.style.display = edit ? 'none' : 'block';
         }
 
         function showProfileSummary() {
@@ -429,6 +454,16 @@
             document.getElementById('summary-birthLocation').textContent = c.birthLocation || '';
             document.getElementById('summary-gender').textContent = c.gender || '';
             document.getElementById('summary-preferredGender').textContent = c.preferredGender || 'Any';
+            document.getElementById('summary-bio').textContent = c.bio || '';
+            document.getElementById('summary-interests').textContent = c.interests ? 'Interests: ' + c.interests : '';
+            document.getElementById('summary-public').textContent = c.isProfilePublic ? 'Yes' : 'No';
+            const photo = document.getElementById('summary-photo');
+            if (c.profilePhotoFileName && c.photoApproved) {
+                photo.src = `/profile-photos/${c.profilePhotoFileName}`;
+                photo.style.display = 'block';
+            } else {
+                photo.style.display = 'none';
+            }
             document.getElementById('landing-section').style.display = 'none';
             document.getElementById('profile-form-section').style.display = 'none';
             document.getElementById('profile-summary').style.display = 'block';
@@ -437,44 +472,83 @@
             document.getElementById('my-matches-section').style.display = 'none';
         }
 
+        async function submitProfile() {
+            const body = {
+                name: document.getElementById('name').value,
+                birthDate: document.getElementById('birthDate').value,
+                birthTime: document.getElementById('birthTime').value + ':00',
+                birthLocation: document.getElementById('birthLocation').value,
+                gender: document.getElementById('gender').value,
+                preferredGender: document.getElementById('preferredGender').value,
+                bio: document.getElementById('bio').value,
+                interests: document.getElementById('interests').value,
+                isProfilePublic: document.getElementById('isPublic').checked
+            };
+
+            if (!currentClient) {
+                body.email = document.getElementById('email').value;
+                body.password = document.getElementById('password').value;
+                const res = await fetch(`${apiAuth}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    authToken = data.token;
+                    localStorage.setItem('authToken', authToken);
+                    localStorage.setItem('clientId', data.clientId);
+                    currentClient = await fetch(`${apiClients}/${data.clientId}`, { headers: { 'X-Auth-Token': authToken } }).then(r => r.json());
+                }
+            } else {
+                body.id = currentClient.id;
+                const res = await fetch(`${apiClients}/${currentClient.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
+                    body: JSON.stringify(body)
+                });
+                if (res.ok || res.status === 204) {
+                    currentClient = await fetch(`${apiClients}/${currentClient.id}`, { headers: { 'X-Auth-Token': authToken } }).then(r => r.json());
+                }
+            }
+
+            const photo = document.getElementById('profilePhoto').files[0];
+            if (photo && currentClient) {
+                const formData = new FormData();
+                formData.append('file', photo);
+                await fetch(`${apiClients}/${currentClient.id}/photo`, {
+                    method: 'POST',
+                    body: formData
+                });
+            }
+
+            showProfileSummary();
+        }
+
         document.getElementById('profile-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-                const client = {
-                    name: document.getElementById('name').value,
-                    birthDate: document.getElementById('birthDate').value,
-                    birthTime: document.getElementById('birthTime').value + ':00',
-                    birthLocation: document.getElementById('birthLocation').value,
-                    gender: document.getElementById('gender').value,
-                    preferredGender: document.getElementById('preferredGender').value,
-                    email: document.getElementById('email').value,
-                    password: document.getElementById('password').value
-                };
-            const res = await fetch(`${apiAuth}/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(client)
-            });
-            if (res.ok) {
-                const data = await res.json();
-                authToken = data.token;
-                localStorage.setItem('authToken', authToken);
-                localStorage.setItem('clientId', data.clientId);
-                currentClient = await fetch(`${apiClients}/${data.clientId}`, { headers: { 'X-Auth-Token': authToken } }).then(r => r.json());
-                showProfileSummary();
-            }
+            await submitProfile();
         });
 
         document.getElementById('edit-btn').addEventListener('click', () => {
-            showProfileForm();
+            showProfileForm(true);
             document.getElementById('name').value = currentClient.name;
             document.getElementById('birthDate').value = currentClient.birthDate.split('T')[0];
             document.getElementById('birthTime').value = currentClient.birthTime.substring(0, 5);
             document.getElementById('birthLocation').value = currentClient.birthLocation || '';
             document.getElementById('gender').value = currentClient.gender || 'Male';
             document.getElementById('preferredGender').value = currentClient.preferredGender || '';
+            document.getElementById('bio').value = currentClient.bio || '';
+            document.getElementById('interests').value = currentClient.interests || '';
+            document.getElementById('isPublic').checked = currentClient.isProfilePublic;
+            document.getElementById('profilePhoto').value = '';
         });
 
-        document.getElementById('create-profile-btn').addEventListener('click', showProfileForm);
+        document.getElementById('create-profile-btn').addEventListener('click', () => {
+            currentClient = null;
+            document.getElementById('profile-form').reset();
+            showProfileForm(false);
+        });
 
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -508,6 +582,18 @@
         document.getElementById('requests-btn').addEventListener('click', () => {
             showRequestsSection();
             loadRequests();
+        });
+
+        document.getElementById('delete-btn').addEventListener('click', async () => {
+            if (!confirm('Delete your profile?')) return;
+            await fetch(`${apiClients}/${currentClient.id}`, {
+                method: 'DELETE',
+                headers: { 'X-Auth-Token': authToken }
+            });
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('clientId');
+            currentClient = null;
+            showLanding();
         });
 
         document.getElementById('my-matches-btn').addEventListener('click', () => {
