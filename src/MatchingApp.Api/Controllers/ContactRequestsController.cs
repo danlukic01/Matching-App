@@ -2,6 +2,7 @@ using MatchingApp.Api.Data;
 using MatchingApp.Api.Models;
 using MatchingApp.Api.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
@@ -95,7 +96,9 @@ namespace MatchingApp.Api.Controllers
             {
                 if (!alreadyMatched)
                 {
-                    return Forbid();
+                    // Return a simple 403 status since no authentication
+                    // scheme is configured for the Forbid() helper.
+                    return StatusCode(StatusCodes.Status403Forbidden);
                 }
             }
             else
@@ -136,7 +139,9 @@ namespace MatchingApp.Api.Controllers
 
                 if (!allowed)
                 {
-                    return Forbid();
+                    // Return explicit 403 when the sender is not among
+                    // the receiver's top recommendations.
+                    return StatusCode(StatusCodes.Status403Forbidden);
                 }
             }
 
