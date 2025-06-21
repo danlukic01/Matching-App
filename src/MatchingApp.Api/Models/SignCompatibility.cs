@@ -1,4 +1,4 @@
-namespace MatchingApp.Api.Models
+﻿namespace MatchingApp.Api.Models
 {
     public class SignCompatibility
     {
@@ -6,5 +6,8 @@ namespace MatchingApp.Api.Models
         public string? SignA { get; set; }
         public string? SignB { get; set; }
         public bool Match { get; set; }
+        public string? Aspect { get; set; }
+        public string? AspectSymbol { get; set; } // "□", "△", etc.
+        public string? AspectDescription { get; set; } // "Power struggles, loyalty...", etc.
     }
 }

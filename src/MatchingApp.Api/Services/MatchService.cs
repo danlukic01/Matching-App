@@ -39,20 +39,34 @@ namespace MatchingApp.Api.Services
 
         private void CompareSign(CompatibilityResult result, string? a, string? b, string label)
         {
-            bool match = !string.IsNullOrEmpty(a) && a == b;
+            var aspect = ZodiacHelper.GetAspect(a, b);
+            double points = aspect switch
+            {
+                "Conjunction" => 1.0,
+                "Trine" or "Sextile" => 0.8,
+                "Square" or "Opposition" => 0.4,
+                _ => 0.2
+            };
+
+            var (aspectSymbol, aspectDesc) = AspectDetailsHelper.GetAspectInfo(aspect, label, a, b);
+
             result.Breakdown.Add(new SignCompatibility
             {
                 Planet = label,
                 SignA = a,
                 SignB = b,
-                Match = match
+                Match = aspect == "Conjunction",
+                Aspect = aspect,
+                AspectSymbol = aspectSymbol,
+                AspectDescription = aspectDesc
             });
 
-            if (match)
-            {
-                result.Score += 1;
-                result.Reasons.Add($"Both share {label} sign {a}");
-            }
+            result.Score += points;
+
+            // More informative reason for the API caller
+            result.Reasons.Add($"{label}: {a} vs {b} {aspectSymbol} {aspect} – {aspectDesc}");
         }
+
+
     }
 }

@@ -781,7 +781,13 @@
                 const full = Math.round(m.starRating);
                 const stars = '★'.repeat(full) + '☆'.repeat(5 - full);
                 const details = m.breakdown.map(d =>
-                    `<li>${d.planet}: ${d.signA ?? '?'} vs ${d.signB ?? '?'}${d.match ? ' ✓' : ''}</li>`
+                    `<li>
+                    <strong>${d.planet}:</strong> ${d.signA ?? '?'} vs ${d.signB ?? '?'}
+                    <span style="font-weight:bold;">${d.aspectSymbol || ''}</span>
+                    <span style="color:#888;">${d.aspect ? d.aspect : ''}</span>
+                    <br />
+                    <small style="color:#888;">${d.aspectDescription || ''}</small>
+                </li>`
                 ).join('');
                 const detailsId = `details-${m.client.id}`;
                 return `<div class="match-card">
